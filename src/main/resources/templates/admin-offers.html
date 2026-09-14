@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Offers | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s ease; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .admin-sidebar .logout-link:hover { background: rgba(224,133,133,0.1); }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 28px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+        .admin-topbar p { color: #8a6a44; font-size: 13px; margin: 4px 0 0; }
+
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; margin-bottom: 28px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; font-size: 14px; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; }
+        tbody tr:last-child { border-bottom: none; }
+        .action-link { text-decoration: none; font-weight: 600; font-size: 13px; margin-right: 14px; }
+        .toggle-link { color: #b58a4b; }
+        .delete-link { color: #c05a5a; }
+        .active-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: white; background: #4f9e5f; }
+        .inactive-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; color: white; background: #a3927e; }
+
+        .form-box { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); max-width: 520px; }
+        .form-box h3 { margin-top: 0; font-size: 18px; color: #2c2118; }
+        label { display: block; margin-top: 14px; font-weight: 600; font-size: 13px; color: #4a3627; }
+        input, select { width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid #e0d7c8; border-radius: 8px; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; }
+        .field-hint { font-size: 11px; color: #a3927e; font-weight: 400; margin-top: 4px; }
+        .save-btn { margin-top: 20px; padding: 12px; width: 100%; background: #2c2118; color: white; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .save-btn:hover { background: #453423; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a th:if="${currentAdminUser.hasPermission('products')}" href="/admin/products">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a href="/admin/offers" class="active">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1>Quantity Offers</h1>
+            <p>Automatic "Buy 2 Get X% Off" or "Buy 4 Pay for 3" style upsells — no coupon code needed by the customer</p>
+        </div>
+
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Name</th>
+                    <th>Applies To</th>
+                    <th>Trigger Qty</th>
+                    <th>Discount</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                <tr th:if="${offers.size() == 0}">
+                    <td colspan="6" style="text-align:center; color:#a3927e; padding:30px;">No offers created yet.</td>
+                </tr>
+                <tr th:each="o : ${offers}">
+                    <td th:text="${o.name}">Name</td>
+                    <td th:text="${o.scope == 'ALL_PRODUCTS'} ? 'All Products' : 'Product #' + ${o.productId}">Scope</td>
+                    <td th:text="${o.triggerQuantity}">2</td>
+                    <td th:text="${o.discountType == 'PERCENTAGE_EXTRA'} ? ${o.discountValue} + '% off' : 'Pay for ' + ${o.discountValue}">Discount</td>
+                    <td>
+                        <span th:if="${o.active}" class="active-badge">Active</span>
+                        <span th:unless="${o.active}" class="inactive-badge">Inactive</span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/admin/offers/toggle/' + ${o.id}}" class="action-link toggle-link" th:text="${o.active} ? 'Deactivate' : 'Activate'">Toggle</a>
+                        <a th:href="@{'/admin/offers/delete/' + ${o.id}}" class="action-link delete-link" onclick="return confirm('Delete this offer?')">Delete</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-box">
+            <h3>Create New Offer</h3>
+            <form th:action="@{/admin/offers/save}" th:object="${offer}" method="post">
+
+                <label>Offer Name</label>
+                <div class="field-hint">Internal label, e.g. "Buy 2 Get 10% Off"</div>
+                <input type="text" th:field="*{name}" required/>
+
+                <label>Applies To</label>
+                <select th:field="*{scope}" required>
+                    <option value="ALL_PRODUCTS">All Products</option>
+                    <option value="SPECIFIC_PRODUCT">Specific Product</option>
+                </select>
+
+                <label>Product (only used if "Specific Product" selected above)</label>
+                <select th:field="*{productId}">
+                    <option value="">— N/A —</option>
+                    <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.name}">Product</option>
+                </select>
+
+                <label>Trigger Quantity</label>
+                <div class="field-hint">Minimum quantity of this item needed to unlock the discount, e.g. 2 or 4</div>
+                <input type="number" th:field="*{triggerQuantity}" min="2" required/>
+
+                <label>Discount Type</label>
+                <select th:field="*{discountType}" required>
+                    <option value="PERCENTAGE_EXTRA">Extra % Off (e.g. Buy 2, get 10% off)</option>
+                    <option value="PAY_FOR_X">Pay for X units (e.g. Buy 4, pay for 3)</option>
+                </select>
+
+                <label>Discount Value</label>
+                <div class="field-hint">For "% Off" enter e.g. 10. For "Pay for X" enter the number of units to charge for, e.g. 3</div>
+                <input type="number" step="0.01" th:field="*{discountValue}" required/>
+
+                <button type="submit" class="save-btn">Create Offer</button>
+            </form>
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

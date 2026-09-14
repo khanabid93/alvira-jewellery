@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Wishlist | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf6ec; color: #3d2e1f; }
+        h1 { font-family: 'Playfair Display', serif; text-align: center; color: #4a3627; margin: 40px 0; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+        nav a { text-decoration: none; color: #5a4632; margin-left: 20px; }
+
+        .wishlist-grid { display: flex; flex-wrap: wrap; gap: 24px; justify-content: center; padding: 0 20px 60px; max-width: 1100px; margin: 0 auto; }
+        .product-card {
+            position: relative; background: white; border-radius: 16px; padding: 16px; width: 220px;
+            text-align: center; box-shadow: 0 8px 24px rgba(90,70,50,0.08);
+        }
+        .product-card img { width: 100%; height: 170px; object-fit: cover; border-radius: 10px; }
+        .product-name { font-weight: 600; margin-top: 10px; color: #4a3627; }
+        .product-price { color: #a8791a; font-size: 16px; font-weight: 600; margin-top: 4px; }
+        .heart-btn { position: absolute; top: 12px; right: 12px; text-decoration: none; font-size: 20px; }
+        .add-cart-link {
+            display: inline-block; margin-top: 10px; padding: 8px 16px; background: #5a4632; color: white;
+            text-decoration: none; border-radius: 30px; font-size: 13px;
+        }
+        .empty-wishlist { text-align: center; color: #8a6a44; padding: 60px 20px; }
+        .empty-wishlist a { color: #a8791a; font-weight: 600; }
+        footer {
+            background: #5a4632;
+            color: white;
+            text-align: center;
+            padding: 40px 20px 28px;
+            margin-top: 50px;
+        }
+        footer a {
+            color: #f0e6d2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+    <div>
+        <a href="/store">Shop</a>
+        <a href="/cart">Cart</a>
+    </div>
+</nav>
+
+<h1>My Wishlist</h1>
+
+<div class="wishlist-grid">
+    <div th:if="${products.size() == 0}" class="empty-wishlist">
+        Your wishlist is empty. <a href="/store">Browse products →</a>
+    </div>
+
+    <div class="product-card" th:each="product : ${products}">
+        <a th:href="@{'/wishlist/toggle/' + ${product.id}}" class="heart-btn" title="Remove from wishlist" style="background:rgba(255,255,255,0.9); width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(0,0,0,0.15); z-index:2;">❤️</a>
+        <a th:href="@{'/product/' + ${product.id}}" style="text-decoration:none; color:inherit;">
+            <img th:src="${product.imageUrl}" alt="Product Image"/>
+            <div class="product-name" th:text="${product.name}">Product Name</div>
+        </a>
+        <div class="product-price" th:text="'₹' + ${product.price}">₹0</div>
+        <a th:href="@{'/add-to-cart/' + ${product.id}}" class="add-cart-link">Add to Cart</a>
+    </div>
+</div>
+<footer>
+    <div style="max-width:900px; margin:0 auto 24px; padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div style="font-size:13px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#d9c5a6; margin-bottom:16px;">Secure Payment</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-visa" style="font-size:22px; color:#1a1f71;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-mastercard" style="font-size:22px; color:#eb001b;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-amex" style="font-size:22px; color:#2e77bc;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#333;">UPI</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#00a651;">RuPay</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-building-columns" style="font-size:16px;"></i> Net Banking
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-money-bill-wave" style="font-size:15px; color:#2e7d32;"></i> COD
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:22px; margin-bottom:20px; font-size:24px;">
+        <a href="#" title="Instagram" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-instagram" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="Facebook" style="background:#1877f2; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-facebook-f" style="color:white; font-size:17px;"></i>
+        </a>
+        <a href="#" title="YouTube" style="background:#ff0000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-youtube" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="X (Twitter)" style="background:#000000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-x-twitter" style="color:white; font-size:17px;"></i>
+        </a>
+    </div>
+
+    &copy; 2026 Alvira Jewellery. All rights reserved.<br/>
+    <a href="/about">About</a> |
+    <a href="/contact">Contact</a> |
+    <a href="/returns">Returns</a> |
+    <a href="/support">Support</a>
+</footer>
+</body>
+</html>

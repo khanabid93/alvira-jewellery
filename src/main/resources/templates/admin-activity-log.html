@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log - Admin | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 24px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+        .admin-topbar p { color: #8a6a44; font-size: 13px; margin: 4px 0 0; }
+
+        .search-bar { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); padding: 18px; margin-bottom: 20px; display: flex; gap: 12px; align-items: center; }
+        .search-bar select { padding: 10px 14px; border: 1px solid #e0d7c8; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 13px; }
+        .search-bar button { padding: 10px 22px; background: #2c2118; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .search-bar a { padding: 10px 18px; color: #8a6a44; text-decoration: none; font-size: 13px; font-weight: 600; }
+
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 13px 18px; text-align: left; font-size: 13px; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; }
+        tbody tr:last-child { border-bottom: none; }
+        .username-tag { font-weight: 600; color: #4a3627; }
+        .action-tag { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: #f8f4ec; color: #6b543e; }
+        .empty-row td { text-align: center; color: #a3927e; padding: 40px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a th:if="${currentAdminUser.hasPermission('products')}" href="/admin/products">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log" class="active">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1>Activity Log</h1>
+            <p>A record of important actions taken by admin and staff accounts (last 200 entries)</p>
+        </div>
+
+        <form class="search-bar" method="get" th:action="@{/admin/activity-log}">
+            <select name="username">
+                <option value="">All Users</option>
+                <option th:each="u : ${allUsernames}" th:value="${u}" th:text="${u}" th:selected="${u == selectedUsername}"></option>
+            </select>
+            <button type="submit">Filter</button>
+            <a href="/admin/activity-log">Clear</a>
+        </form>
+
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Details</th>
+                    <th>Time</th>
+                </tr>
+                <tr th:if="${logs.size() == 0}" class="empty-row"><td colspan="4">No activity recorded yet.</td></tr>
+                <tr th:each="log : ${logs}">
+                    <td><span class="username-tag" th:text="${log.username}">username</span></td>
+                    <td><span class="action-tag" th:text="${log.action}">Action</span></td>
+                    <td th:text="${log.details}">Details</td>
+                    <td th:text="${#temporals.format(log.timestamp, 'dd MMM yyyy, hh:mm a')}">Date</td>
+                </tr>
+            </table>
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdf6ec 0%, #f3e4d0 40%, #e8d3b0 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: #3d2e1f;
+        }
+        h1 { font-family: 'Playfair Display', serif; text-align: center; color: #4a3627; margin: 30px 0 40px; }
+        h3 { font-size: 15px; color: #4a3627; margin: 24px 0 12px; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+        .checkout-body { padding: 20px; }
+
+        .checkout-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(90,70,50,0.12);
+            padding: 30px;
+        }
+
+        .field-group { position: relative; margin-top: 16px; }
+        .field-group label {
+            position: absolute;
+            top: -8px;
+            left: 14px;
+            background: #fdf8f1;
+            padding: 0 6px;
+            font-size: 12px;
+            color: #a3927e;
+            font-weight: 500;
+        }
+        .field-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid rgba(90,70,50,0.25);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.7);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+            color: #3d2e1f;
+        }
+        .field-group input::placeholder { color: #b9ac9a; }
+        .field-group input:read-only { background: rgba(240,235,225,0.7); color: #6b543e; }
+
+        .field-row { display: flex; gap: 12px; }
+        .field-row .field-group { flex: 1; }
+
+        .pincode-status { font-size: 12px; margin-top: 4px; padding-left: 4px; }
+        .pincode-status.loading { color: #a3927e; }
+        .pincode-status.success { color: #2e7d32; }
+        .pincode-status.error { color: #c62828; }
+
+        .otp-row { display: flex; gap: 10px; align-items: flex-start; }
+        .otp-row .field-group { flex: 1; margin-top: 0; }
+        .send-otp-btn {
+            padding: 14px 16px; background: #5a4632; color: white; border: none;
+            border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap;
+        }
+        .send-otp-btn:disabled { background: #b9ac9a; cursor: not-allowed; }
+        .otp-hint { font-size: 12px; color: #a8791a; margin-top: 6px; padding-left: 4px; }
+        .verified-badge { color: #2e7d32; font-size: 12px; font-weight: 600; margin-top: 6px; padding-left: 4px; }
+
+        .order-total {
+            margin-top: 24px;
+            font-size: 20px;
+            font-weight: 700;
+            font-family: 'Playfair Display', serif;
+            text-align: right;
+            color: #4a3627;
+            border-top: 1px solid rgba(90,70,50,0.15);
+            padding-top: 12px;
+        }
+        .place-order-btn {
+            display: block;
+            width: 100%;
+            margin-top: 22px;
+            padding: 15px;
+            background: rgba(90,70,50,0.9);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(90,70,50,0.2);
+        }
+        .place-order-btn:disabled { background: rgba(150,140,130,0.6); cursor: not-allowed; box-shadow: none; }
+
+        @media (max-width: 768px) {
+            .checkout-body { padding: 12px; }
+            h1 { font-size: 24px; margin: 16px 0 24px; }
+            .checkout-container { padding: 20px; }
+            .field-group input { padding: 12px; font-size: 14px; }
+            .order-total { font-size: 17px; }
+            .place-order-btn { padding: 13px; font-size: 14px; }
+        }
+
+        footer {
+            background: #5a4632;
+            color: white;
+            text-align: center;
+            padding: 40px 20px 28px;
+            margin-top: 50px;
+        }
+        footer a {
+            color: #f0e6d2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+</nav>
+
+<div class="checkout-body">
+
+    <h1>Checkout</h1>
+
+    <div class="checkout-container">
+
+        <form id="checkoutForm" th:action="@{/place-order}" method="post">
+            <div th:if="${param.blocked}" style="background:#fdecea; border:1px solid #f5c6c2; border-radius:12px; padding:16px; margin-bottom:20px; color:#c62828; font-size:14px; font-weight:600; text-align:center;">
+                Your account is currently restricted from placing orders. Please contact support for assistance.
+            </div>
+
+            <h3>Customer Information</h3>
+
+            <div class="field-group">
+                <label>Full Name *</label>
+                <input type="text" name="customerName" id="customerName" placeholder="Your full name" required/>
+            </div>
+            <div class="otp-row" style="margin-top:24px;">
+                <div class="field-group">
+                    <label>Mobile Number *</label>
+                    <input type="tel" id="phoneNumber" name="phoneNumber" placeholder="10-digit mobile number" maxlength="10" pattern="[789][0-9]{9}" required oninput="trackAbandonedCartIfValid()"/>
+                </div>
+                <button type="button" class="send-otp-btn" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+            </div>
+            <div class="pincode-status" id="phoneStatus"></div>
+            <div id="otpSection" style="display:none;">
+                <div class="field-group" style="margin-top:12px;">
+                    <label>Enter OTP *</label>
+                    <input type="text" id="otpInput" placeholder="6-digit code" maxlength="6"/>
+                </div>
+                <div class="otp-hint" id="otpHint"></div>
+                <button type="button" class="send-otp-btn" style="margin-top:8px;" onclick="verifyOtp()">Verify</button>
+            </div>
+            <div class="verified-badge" id="verifiedBadge" style="display:none;">✓ Mobile number verified</div>
+
+            <h3>Shipping Address</h3>
+
+            <div class="field-group">
+                <label>Pincode *</label>
+                <input type="text" id="pincode" name="pincode" placeholder="6-digit pincode" maxlength="6" required oninput="lookupPincode(this.value)"/>
+            </div>
+            <div class="pincode-status" id="pincodeStatus"></div>
+
+            <div class="field-row">
+                <div class="field-group">
+                    <label>City *</label>
+                    <input type="text" id="city" name="city" placeholder="Auto-filled from pincode" readonly required/>
+                </div>
+                <div class="field-group">
+                    <label>State *</label>
+                    <input type="text" id="state" name="state" placeholder="Auto-filled from pincode" readonly/>
+                </div>
+            </div>
+
+            <div class="field-group">
+                <label>Flat, House No. *</label>
+                <input type="text" id="flatHouseNo" name="flatHouseNo" placeholder="e.g. Flat 302, Sunrise Apartments" required/>
+            </div>
+
+            <div class="field-group">
+                <label>Apartment, Area, Sector, Village *</label>
+                <input type="text" id="areaSector" name="areaSector" placeholder="e.g. MG Road, Sector 12" required/>
+            </div>
+
+            <div class="field-group">
+                <label>Landmark</label>
+                <input type="text" id="landmark" name="landmark" placeholder="e.g. Near City Hospital (optional)"/>
+            </div>
+
+            <h3>Coupon</h3>
+
+            <div id="couponInputRow" th:style="${cart.appliedCouponCode == null} ? '' : 'display:none;'" class="otp-row" style="margin-top:7px;">
+                <div class="field-group">
+                    <label>Coupon Code</label>
+                    <input type="text" placeholder="Enter coupon code" id="couponCodeInput"/>
+                </div>
+                <button type="button" class="send-otp-btn" onclick="applyCouponJs()">Apply</button>
+            </div>
+            <div class="pincode-status error" id="couponError"></div>
+
+            <div id="couponAppliedRow" th:style="${cart.appliedCouponCode != null} ? '' : 'display:none;'" style="margin-top:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(46,125,50,0.08); border:1px solid rgba(46,125,50,0.25); border-radius:10px; padding:13px 16px; gap:12px;">
+                    <span style="color:#2e7d32; font-size:14px; font-weight:600; flex:1;">✓ Coupon "<span id="appliedCouponCodeText" th:text="${cart.appliedCouponCode}"></span>" applied</span>
+                    <a href="#" onclick="removeCouponJs(); return false;" style="flex-shrink:0; color:#c62828; font-size:13px; font-weight:700; text-decoration:none; padding:5px 12px; border-radius:6px; background:white; white-space:nowrap;">Remove</a>
+                </div>
+            </div>
+            <div id="priceSimple" th:style="${cart.discountAmount == 0 and cart.quantityOfferDiscount == 0} ? '' : 'display:none;'" class="order-total">
+                Total: ₹<span id="simpleTotalText" th:text="${cart.total}">0</span>
+            </div>
+            <div id="priceBreakdown" th:style="${cart.discountAmount > 0 or cart.quantityOfferDiscount > 0} ? '' : 'display:none;'" style="margin-top:18px; padding:16px; background:rgba(255,255,255,0.5); border-radius:12px;">
+                <div style="display:flex; justify-content:space-between; align-items:center; color:#6b543e; font-size:14px; padding:4px 0;">
+                    <span>Subtotal</span>
+                    <span id="subtotalText" th:text="'₹' + ${cart.subtotal}">₹0</span>
+                </div>
+                <div id="discountRow" th:style="${cart.discountAmount > 0} ? '' : 'display:none;'" style="display:flex; justify-content:space-between; align-items:center; color:#2e7d32; font-size:14px; padding:4px 0;">
+                    <span>Discount</span>
+                    <span id="discountText" th:text="'-₹' + ${cart.discountAmount}">-₹0</span>
+                </div>
+                <div id="offerSavingsRow" th:style="${cart.quantityOfferDiscount > 0} ? '' : 'display:none;'" style="display:flex; justify-content:space-between; align-items:center; color:#2e7d32; font-size:14px; padding:4px 0;">
+                    <span>🎁 Quantity Offer Savings</span>
+                    <span id="offerSavingsText" th:text="'-₹' + ${#numbers.formatDecimal(cart.quantityOfferDiscount, 1, 2)}">-₹0</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; padding-top:12px; border-top:1px solid rgba(90,70,50,0.2); font-size:20px; font-weight:700; font-family:'Playfair Display', serif; color:#4a3627;">
+                    <span>Total</span>
+                    <span id="breakdownTotalText" th:text="${cart.total}">0</span>
+                </div>
+            </div>
+            <button type="submit" class="place-order-btn" id="placeOrderBtn" disabled>Verify mobile number to continue</button>
+
+        </form>
+
+    </div>
+
+</div>
+
+<script>
+    let generatedOtp = null;
+    let isVerified = false;
+    let pincodeValid = false;
+
+    function lookupPincode(pin) {
+        const statusEl = document.getElementById('pincodeStatus');
+        const cityEl = document.getElementById('city');
+        const stateEl = document.getElementById('state');
+
+        cityEl.value = '';
+        stateEl.value = '';
+        pincodeValid = false;
+
+        if (pin.length === 0) {
+            statusEl.textContent = '';
+            return;
+        }
+
+        if (!/^\d{6}$/.test(pin)) {
+            statusEl.textContent = 'Pincode must be exactly 6 digits';
+            statusEl.className = 'pincode-status error';
+            return;
+        }
+
+        statusEl.textContent = 'Looking up pincode...';
+        statusEl.className = 'pincode-status loading';
+
+        fetch('https://api.postalpincode.in/pincode/' + pin)
+            .then(res => res.json())
+            .then(data => {
+                if (data[0].Status === 'Success') {
+                    const po = data[0].PostOffice[0];
+                    cityEl.value = po.District;
+                    stateEl.value = po.State;
+                    statusEl.textContent = '✓ Location found';
+                    statusEl.className = 'pincode-status success';
+                    pincodeValid = true;
+                } else {
+                    statusEl.textContent = 'Invalid pincode — please check and re-enter';
+                    statusEl.className = 'pincode-status error';
+                    pincodeValid = false;
+                }
+            })
+            .catch(() => {
+                statusEl.textContent = 'Could not verify pincode — check your connection';
+                statusEl.className = 'pincode-status error';
+                pincodeValid = false;
+            });
+    }
+
+    function isValidMobile(phone) {
+        return /^[789]\d{9}$/.test(phone);
+    }
+
+    function sendOtp() {
+        const phone = document.getElementById('phoneNumber').value;
+        const phoneStatusEl = document.getElementById('phoneStatus');
+
+        if (!isValidMobile(phone)) {
+            phoneStatusEl.textContent = 'Enter a valid 10-digit mobile number starting with 7, 8, or 9';
+            phoneStatusEl.className = 'pincode-status error';
+            return;
+        }
+        phoneStatusEl.textContent = '';
+
+        generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+        document.getElementById('otpSection').style.display = 'block';
+        document.getElementById('otpHint').textContent = 'Demo mode — your OTP is ' + generatedOtp + ' (real SMS not yet connected)';
+        document.getElementById('sendOtpBtn').disabled = true;
+        document.getElementById('sendOtpBtn').textContent = 'Sent';
+    }
+    function trackAbandonedCartIfValid() {
+        const phone = document.getElementById('phoneNumber').value;
+        const name = document.getElementById('customerName') ? document.getElementById('customerName').value : '';
+        if (isValidMobile(phone)) {
+            const formData = new URLSearchParams();
+            formData.append('phoneNumber', phone);
+            formData.append('customerName', name);
+            fetch('/track-abandoned-cart', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+        }
+    }
+    function verifyOtp() {
+        const entered = document.getElementById('otpInput').value;
+        if (entered === generatedOtp) {
+            isVerified = true;
+            document.getElementById('otpSection').style.display = 'none';
+            document.getElementById('verifiedBadge').style.display = 'block';
+            document.getElementById('placeOrderBtn').disabled = false;
+            document.getElementById('placeOrderBtn').textContent = 'Place Order (Cash on Delivery)';
+        } else {
+            alert('Incorrect OTP. Please try again.');
+        }
+    }
+
+    document.getElementById('checkoutForm').addEventListener('submit', function(e) {
+        if (!pincodeValid) {
+            e.preventDefault();
+            alert('Please enter a valid pincode before placing your order.');
+            document.getElementById('pincode').focus();
+        }
+    });
+    function updateCouponUI(data) {
+        document.getElementById('couponError').textContent = data.error || '';
+
+        const hasCoupon = data.appliedCouponCode != null;
+        document.getElementById('couponInputRow').style.display = hasCoupon ? 'none' : 'flex';
+        document.getElementById('couponAppliedRow').style.display = hasCoupon ? 'flex' : 'none';
+        if (hasCoupon) {
+            document.getElementById('appliedCouponCodeText').textContent = data.appliedCouponCode;
+        }
+
+        const hasDiscount = data.discountAmount > 0 || data.quantityOfferDiscount > 0;
+        document.getElementById('priceSimple').style.display = hasDiscount ? 'none' : 'block';
+        document.getElementById('priceBreakdown').style.display = hasDiscount ? 'block' : 'none';
+
+        document.getElementById('simpleTotalText').textContent = data.total;
+        document.getElementById('breakdownTotalText').textContent = data.total;
+        document.getElementById('subtotalText').textContent = '₹' + data.subtotal;
+
+        document.getElementById('offerSavingsRow').style.display = data.quantityOfferDiscount > 0 ? 'flex' : 'none';
+        document.getElementById('offerSavingsText').textContent = '-₹' + data.quantityOfferDiscount;
+
+        document.getElementById('discountRow').style.display = data.discountAmount > 0 ? 'flex' : 'none';
+        document.getElementById('discountText').textContent = '-₹' + data.discountAmount;
+    }
+
+    function applyCouponJs() {
+        const code = document.getElementById('couponCodeInput').value;
+        if (!code.trim()) {
+            document.getElementById('couponError').textContent = 'Please enter a coupon code.';
+            return;
+        }
+        const formData = new URLSearchParams();
+        formData.append('couponCode', code);
+        fetch('/apply-coupon-checkout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: formData
+        })
+            .then(res => res.json())
+            .then(data => updateCouponUI(data));
+    }
+
+    function removeCouponJs() {
+        fetch('/remove-coupon-checkout')
+            .then(res => res.json())
+            .then(data => updateCouponUI(data));
+    }
+</script>
+<footer>
+    <div style="max-width:900px; margin:0 auto 24px; padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div style="font-size:13px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#d9c5a6; margin-bottom:16px;">Secure Payment</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-visa" style="font-size:22px; color:#1a1f71;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-mastercard" style="font-size:22px; color:#eb001b;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-amex" style="font-size:22px; color:#2e77bc;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#333;">UPI</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#00a651;">RuPay</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-building-columns" style="font-size:16px;"></i> Net Banking
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-money-bill-wave" style="font-size:15px; color:#2e7d32;"></i> COD
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:22px; margin-bottom:20px; font-size:24px;">
+        <a href="#" title="Instagram" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-instagram" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="Facebook" style="background:#1877f2; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-facebook-f" style="color:white; font-size:17px;"></i>
+        </a>
+        <a href="#" title="YouTube" style="background:#ff0000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-youtube" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="X (Twitter)" style="background:#000000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-x-twitter" style="color:white; font-size:17px;"></i>
+        </a>
+    </div>
+
+    &copy; 2026 Alvira Jewellery. All rights reserved.<br/>
+    <a href="/about">About</a> |
+    <a href="/contact">Contact</a> |
+    <a href="/returns">Returns</a> |
+    <a href="/support">Support</a>
+</footer>
+</body>
+</html>

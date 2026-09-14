@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Coupons | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s ease; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .admin-sidebar .logout-link:hover { background: rgba(224,133,133,0.1); }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 28px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; margin-bottom: 28px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; font-size: 14px; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; }
+        tbody tr:last-child { border-bottom: none; }
+        .delete-link { color: #c05a5a; text-decoration: none; font-weight: 600; font-size: 13px; }
+
+        .form-box { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); max-width: 480px; }
+        .form-box h3 { margin-top: 0; font-size: 18px; color: #2c2118; }
+        label { display: block; margin-top: 14px; font-weight: 600; font-size: 13px; color: #4a3627; }
+        input, select { width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid #e0d7c8; border-radius: 8px; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        .save-btn { margin-top: 20px; padding: 12px; width: 100%; background: #2c2118; color: white; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+        .save-btn:hover { background: #453423; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/products" class="active">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1>Manage Coupons</h1>
+        </div>
+
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Code</th>
+                    <th>Type</th>
+                    <th>Value</th>
+                    <th>Min Order</th>
+                    <th>Valid Until</th>
+                    <th>Created</th>
+                    <th>Active</th>
+                    <th>Action</th>
+                </tr>
+                <tr th:each="c : ${coupons}">
+                    <td th:text="${c.code}">CODE</td>
+                    <td th:text="${c.discountType}">TYPE</td>
+                    <td th:text="${c.discountType == 'PERCENTAGE'} ? ${c.discountValue} + '%' : '₹' + ${c.discountValue}">Value</td>
+                    <td th:text="'₹' + ${c.minOrderValue}">₹0</td>
+                    <td th:text="${c.expiryDate}">Date</td>
+                    <td th:text="${#temporals.format(c.createdAt, 'dd MMM yyyy')}">Date</td>
+                    <td th:text="${c.active} ? 'Yes' : 'No'">Yes</td>
+                    <td><a th:href="@{'/admin/coupons/delete/' + ${c.id}}" class="delete-link" onclick="return confirm('Delete this coupon?')">Delete</a></td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-box">
+            <h3>Add New Coupon</h3>
+            <form th:action="@{/admin/coupons/save}" th:object="${coupon}" method="post">
+
+                <label>Coupon Code</label>
+                <input type="text" th:field="*{code}" placeholder="e.g. WELCOME10" required/>
+
+                <label>Discount Type</label>
+                <select th:field="*{discountType}">
+                    <option value="PERCENTAGE">Percentage (%)</option>
+                    <option value="FLAT">Flat Amount (₹)</option>
+                </select>
+
+                <label>Discount Value</label>
+                <input type="number" step="0.01" th:field="*{discountValue}" required/>
+
+                <label>Minimum Order Value (₹)</label>
+                <input type="number" step="0.01" th:field="*{minOrderValue}" required/>
+
+                <label>Valid Until</label>
+                <input type="date" th:field="*{expiryDate}" required/>
+
+                <button type="submit" class="save-btn">Create Coupon</button>
+            </form>
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

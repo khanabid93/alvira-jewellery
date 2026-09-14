@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - Orders | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s ease; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .admin-sidebar .logout-link:hover { background: rgba(224,133,133,0.1); }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 28px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 16px 20px; text-align: left; font-size: 14px; vertical-align: top; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; transition: background 0.15s ease; }
+        tbody tr:hover { background: #fbf8f2; }
+        tbody tr:last-child { border-bottom: none; }
+
+        .status-badge { padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: white; display: inline-block; }
+        .status-PLACED { background-color: #d99a3f; }
+        .status-SHIPPED { background-color: #4a7ab5; }
+        .status-DELIVERED { background-color: #4f9e5f; }
+
+        select { padding: 8px 10px; border-radius: 8px; border: 1px solid #ddd; font-family: 'Inter', sans-serif; font-size: 13px; margin-top: 6px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/products" class="active">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1>Manage Orders</h1>
+        </div>
+
+        <form method="get" th:action="@{/admin/orders}" style="background:white; border-radius:16px; box-shadow:0 4px 20px rgba(44,33,24,0.06); padding:20px; margin-bottom:20px; display:flex; gap:12px; flex-wrap:wrap; align-items:end;">
+            <div style="flex:2; min-width:200px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:#6b543e; margin-bottom:6px;">Search</label>
+                <input type="text" name="search" th:value="${searchQuery}" placeholder="Order ID, name, phone, or product" style="width:100%; padding:10px 12px; border:1px solid #e0d7c8; border-radius:8px; font-family:'Inter', sans-serif; font-size:13px; box-sizing:border-box;"/>
+            </div>
+            <div style="flex:1; min-width:160px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:#6b543e; margin-bottom:6px;">Payment Mode</label>
+                <select name="paymentMode" style="width:100%; padding:10px 12px; border:1px solid #e0d7c8; border-radius:8px; font-family:'Inter', sans-serif; font-size:13px;">
+                    <option value="">All</option>
+                    <option value="Cash on Delivery" th:selected="${selectedPaymentMode == 'Cash on Delivery'}">Cash on Delivery</option>
+                    <option value="UPI" th:selected="${selectedPaymentMode == 'UPI'}">UPI</option>
+                    <option value="Card" th:selected="${selectedPaymentMode == 'Card'}">Card</option>
+                    <option value="Net Banking" th:selected="${selectedPaymentMode == 'Net Banking'}">Net Banking</option>
+                </select>
+            </div>
+            <div style="flex:1; min-width:160px;">
+                <label style="display:block; font-size:12px; font-weight:600; color:#6b543e; margin-bottom:6px;">Order Date</label>
+                <input type="date" name="orderDate" th:value="${selectedDate}" style="width:100%; padding:10px 12px; border:1px solid #e0d7c8; border-radius:8px; font-family:'Inter', sans-serif; font-size:13px; box-sizing:border-box;"/>
+            </div>
+            <button type="submit" style="padding:10px 22px; background:#2c2118; color:white; border:none; border-radius:8px; font-size:13px; font-weight:600; cursor:pointer;">Filter</button>
+            <a href="/admin/orders" style="padding:10px 18px; color:#8a6a44; text-decoration:none; font-size:13px; font-weight:600;">Clear</a>
+        </form>
+
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Total</th>
+                    <th>Address</th>
+                    <th>Payment</th>
+                    <th>Status</th>
+                    <th>Update Status</th>
+                    <th>Actions</th>
+                </tr>
+                <tr th:each="order : ${orders}">
+                    <td th:text="${order.id}">1</td>
+                    <td>
+                        <span th:text="${order.customerName}">Name</span><br/>
+                        <span th:text="${order.phoneNumber}">Phone</span>
+                    </td>
+                    <td th:text="${order.orderSummary}">Items</td>
+                    <td th:text="'₹' + ${order.totalAmount}">₹0</td>
+                    <td>
+                        <span th:text="${order.address}">Address</span>,
+                        <span th:text="${order.city}">City</span> -
+                        <span th:text="${order.pincode}">Pincode</span>
+                    </td>
+                    <td th:text="${order.paymentMode}">Cash on Delivery</td>
+                    <td>
+                        <span class="status-badge" th:classappend="'status-' + ${order.status}" th:text="${order.shipmentStatus != null ? order.shipmentStatus : order.status}">PLACED</span>
+                    </td>
+                    <td>
+                        <form th:action="@{'/admin/orders/update-status/' + ${order.id}}" method="get">
+                            <select name="status" onchange="this.form.submit()">
+                                <option value="PLACED" th:selected="${order.status == 'PLACED'}">Placed</option>
+                                <option value="SHIPPED" th:selected="${order.status == 'SHIPPED'}">Shipped</option>
+                                <option value="DELIVERED" th:selected="${order.status == 'DELIVERED'}">Delivered</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <a th:href="@{'/admin/orders/edit/' + ${order.id}}" style="color:#b58a4b; font-weight:600; text-decoration:none; font-size:13px;">Edit</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rate Your Products | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf6ec; color: #3d2e1f; }
+        h1 { font-family: 'Playfair Display', serif; text-align: center; color: #4a3627; margin: 40px 0 10px; }
+        .subtitle { text-align: center; color: #8a6a44; font-size: 14px; margin-bottom: 30px; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 0 20px 60px; }
+        .product-card { background: white; border-radius: 14px; padding: 16px; margin-bottom: 14px; display: flex; align-items: center; gap: 16px; box-shadow: 0 4px 16px rgba(90,70,50,0.06); }
+        .product-card img { width: 64px; height: 64px; object-fit: cover; border-radius: 10px; }
+        .product-card .name { font-weight: 600; color: #4a3627; flex-grow: 1; }
+        .rate-btn { padding: 9px 18px; background: #5a4632; color: white; text-decoration: none; border-radius: 30px; font-size: 13px; font-weight: 600; white-space: nowrap; }
+
+        .empty-state { text-align: center; color: #8a6a44; padding: 50px 20px; background: white; border-radius: 16px; }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #8a6a44; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+</nav>
+
+<h1>Rate Your Products</h1>
+<p class="subtitle" th:text="'From Order #' + ${order.id}">Order</p>
+
+<div class="container">
+
+    <div th:if="${orderProducts.size() == 0}" class="empty-state">
+        Couldn't find these products in our catalog — they may have been removed.
+    </div>
+
+    <div class="product-card" th:each="product : ${orderProducts}">
+        <img th:src="${product.imageUrl}" alt="Product"/>
+        <div class="name" th:text="${product.name}">Product Name</div>
+        <a th:href="@{'/product/' + ${product.id} + '#reviewForm'}" class="rate-btn">Rate This</a>
+    </div>
+
+    <a href="/account" class="back-link">← Back to My Account</a>
+
+</div>
+
+</body>
+</html>

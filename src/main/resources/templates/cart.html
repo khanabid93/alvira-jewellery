@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Cart - Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdf6ec 0%, #f3e4d0 40%, #e8d3b0 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            color: #3d2e1f;
+        }
+        h1 { font-family: 'Playfair Display', serif; text-align: center; color: #4a3627; margin: 30px 0 40px; }
+        .cart-container { max-width: 600px; margin: 0 auto; }
+
+        .glass-card {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(90,70,50,0.10);
+        }
+
+        .cart-item { padding: 16px; margin-bottom: 16px; }
+        .cart-item-top { display: flex; align-items: center; }
+        .cart-item img { width: 80px; height: 80px; object-fit: cover; border-radius: 10px; margin-right: 15px; }
+        .cart-item-details { flex-grow: 1; }
+        .cart-item-name { font-weight: 600; color: #4a3627; }
+        .cart-item-price { color: #a8791a; font-weight: 500; }
+
+        .qty-controls { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+        .qty-btn {
+            width: 28px; height: 28px; border-radius: 50%; border: 1.5px solid #5a4632;
+            background: white; color: #5a4632; font-size: 16px; font-weight: 700; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; text-decoration: none; line-height: 1;
+        }
+        .qty-value { font-weight: 600; min-width: 20px; text-align: center; }
+
+        .upsell-msg {
+            margin-top: 8px; font-size: 12px; color: #a8791a; font-weight: 600;
+            background: rgba(181,138,75,0.1); padding: 6px 10px; border-radius: 8px; display: inline-block;
+        }
+
+        .coupon-box { padding: 18px; margin-bottom: 16px; }
+        .coupon-box input {
+            padding: 10px 14px; width: 60%;
+            border: 1px solid rgba(90,70,50,0.25);
+            border-radius: 30px; background: rgba(255,255,255,0.6);
+        }
+        .coupon-box button {
+            padding: 10px 20px;
+            background: rgba(90,70,50,0.9);
+            color: white; border: none; border-radius: 30px; cursor: pointer; font-weight: 500;
+        }
+        .coupon-error { color: #c62828; margin-top: 10px; font-size: 14px; }
+        .coupon-applied { color: #2e7d32; margin-top: 4px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; font-weight: 500; }
+
+        .price-summary { padding: 18px; margin-top: 16px; }
+        .price-row { display: flex; justify-content: space-between; margin-bottom: 8px; color: #6b543e; }
+        .price-row.total { font-size: 22px; font-weight: 700; font-family: 'Playfair Display', serif; color: #4a3627; border-top: 1px solid rgba(90,70,50,0.15); padding-top: 10px; }
+
+        .checkout-btn {
+            display: block; margin-top: 16px;
+            background: rgba(90,70,50,0.9);
+            color: white; padding: 15px; border-radius: 30px;
+            text-align: center; text-decoration: none; font-weight: 600;
+            box-shadow: 0 8px 24px rgba(90,70,50,0.2);
+        }
+        .back-link { display: block; text-align: center; margin-top: 20px; color: #8a6a44; text-decoration: none; }
+        .empty-cart { text-align: center; color: #8a6a44; padding: 40px; }
+
+        footer {
+            background: #5a4632;
+            color: white;
+            text-align: center;
+            padding: 40px 20px 28px;
+            margin-top: 50px;
+        }
+        footer a {
+            color: #f0e6d2;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 12px; }
+            h1 { font-size: 24px; margin: 16px 0 24px; }
+            .cart-item { padding: 12px; margin-bottom: 12px; }
+            .cart-item img { width: 60px; height: 60px; margin-right: 12px; }
+            .cart-item-name { font-size: 14px; }
+            .cart-item-price { font-size: 13px; }
+            .coupon-box { padding: 14px; }
+            .coupon-box input { width: 55%; font-size: 13px; }
+            .coupon-box button { padding: 10px 14px; font-size: 13px; }
+            .price-summary { padding: 14px; }
+            .price-row.total { font-size: 18px; }
+            .checkout-btn { padding: 13px; font-size: 14px; }
+        }
+    </style>
+</head>
+<body>
+
+<h1>Your Cart</h1>
+
+<div class="cart-container">
+
+    <div th:if="${cart.items.size() == 0}" class="glass-card empty-cart">
+        Your cart is empty.
+    </div>
+
+    <div class="glass-card cart-item" th:each="item : ${cart.items}">
+        <div class="cart-item-top">
+            <img th:src="${item.product.imageUrl}" alt="Product"/>
+            <div class="cart-item-details">
+                <div class="cart-item-name" th:text="${item.product.name}">Product Name</div>
+                <div class="cart-item-price" th:text="'₹' + ${item.product.price} + ' x ' + ${item.quantity}">₹0 x 1</div>
+                <div class="qty-controls">
+                    <a class="qty-btn" th:href="@{'/update-cart-quantity/' + ${item.product.id} + '?quantity=' + ${item.quantity - 1}}">−</a>
+                    <span class="qty-value" th:text="${item.quantity}">1</span>
+                    <a class="qty-btn" th:href="@{'/update-cart-quantity/' + ${item.product.id} + '?quantity=' + ${item.quantity + 1}}">+</a>
+                </div>
+                <div class="upsell-msg" th:if="${item.getUpsellMessage(activeOffers) != null}" th:text="${item.getUpsellMessage(activeOffers)}"></div>
+            </div>
+            <a th:href="@{'/remove-from-cart/' + ${item.product.id}}" style="color:#c62828; text-decoration:none; font-size:20px; padding:6px 10px;" title="Remove item">✕</a>
+        </div>
+    </div>
+    <div th:if="${cart.items.size() > 0}" style="text-align:right; margin-bottom:12px;">
+        <a href="/clear-cart" onclick="return confirm('Remove all items from your cart?')" style="color:#c62828; font-size:13px; text-decoration:none; font-weight:600;">Clear Cart</a>
+    </div>
+    <div class="glass-card coupon-box" th:if="${cart.items.size() > 0}">
+        <div th:if="${cart.appliedCouponCode == null}">
+            <form th:action="@{/apply-coupon}" method="post">
+                <input type="text" name="couponCode" placeholder="Enter coupon code"/>
+                <button type="submit">Apply</button>
+            </form>
+            <div class="coupon-error" th:if="${couponError}" th:text="${couponError}"></div>
+        </div>
+        <div class="coupon-applied" th:if="${cart.appliedCouponCode != null}">
+            <span>✓ Coupon "<span th:text="${cart.appliedCouponCode}"></span>" applied</span>
+            <a href="/remove-coupon" style="color:#c62828;">Remove</a>
+        </div>
+    </div>
+
+    <div class="glass-card price-summary" th:if="${cart.items.size() > 0}">
+        <div class="price-row">
+            <span>Subtotal</span>
+            <span th:text="'₹' + ${cart.subtotal}">₹0</span>
+        </div>
+        <div class="price-row" th:if="${cart.isQuantityOfferActive()}">
+            <span>🎁 Quantity Offer Savings</span>
+            <span style="color:#2e7d32;" th:text="'-₹' + ${cart.quantityOfferDiscount}">-₹0</span>
+        </div>
+        <div class="price-row" th:if="${cart.isCouponActiveDisplay()}">
+            <span>Discount</span>
+            <span style="color:#2e7d32;" th:text="'-₹' + ${cart.discountAmount}">-₹0</span>
+        </div>
+        <div class="price-row total">
+            <span>Total</span>
+            <span th:text="'₹' + ${cart.total}">₹0</span>
+        </div>
+    </div>
+
+    <a href="/checkout" class="checkout-btn" th:if="${cart.items.size() > 0}">Proceed to Checkout</a>
+    <a href="/store" class="back-link">← Continue Shopping</a>
+
+</div>
+<footer>
+    <div style="max-width:900px; margin:0 auto 24px; padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div style="font-size:13px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#d9c5a6; margin-bottom:16px;">Secure Payment</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-visa" style="font-size:22px; color:#1a1f71;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-mastercard" style="font-size:22px; color:#eb001b;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-amex" style="font-size:22px; color:#2e77bc;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#333;">UPI</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#00a651;">RuPay</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-building-columns" style="font-size:16px;"></i> Net Banking
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-money-bill-wave" style="font-size:15px; color:#2e7d32;"></i> COD
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:22px; margin-bottom:20px; font-size:24px;">
+        <a href="#" title="Instagram" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-instagram" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="Facebook" style="background:#1877f2; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-facebook-f" style="color:white; font-size:17px;"></i>
+        </a>
+        <a href="#" title="YouTube" style="background:#ff0000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-youtube" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="X (Twitter)" style="background:#000000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-x-twitter" style="color:white; font-size:17px;"></i>
+        </a>
+    </div>
+
+    &copy; 2026 Alvira Jewellery. All rights reserved.<br/>
+    <a href="/about">About</a> |
+    <a href="/contact">Contact</a> |
+    <a href="/returns">Returns</a> |
+    <a href="/support">Support</a>
+</footer>
+</body>
+</html>

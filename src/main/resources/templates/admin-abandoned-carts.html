@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Abandoned Carts - Admin | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 24px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+        .admin-topbar p { color: #8a6a44; font-size: 13px; margin: 4px 0 0; }
+
+        .stat-card { background: white; border-radius: 14px; padding: 20px 24px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); max-width: 280px; margin-bottom: 24px; }
+        .stat-card .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: #a3927e; font-weight: 600; }
+        .stat-card .stat-value { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: #c05a5a; margin-top: 6px; }
+
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 18px; text-align: left; font-size: 13px; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; }
+        tbody tr:last-child { border-bottom: none; }
+
+        .urgent-badge { background: #c05a5a; color: white; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; margin-left: 8px; }
+        .contacted-badge { background: #a3927e; color: white; padding: 3px 9px; border-radius: 20px; font-size: 10px; font-weight: 700; }
+
+        .action-link { text-decoration: none; font-weight: 600; font-size: 12px; margin-right: 12px; }
+        .whatsapp-link { color: #2e7d32; }
+        .call-link { color: #4a7ab5; }
+        .contact-link { color: #a8791a; }
+
+        .empty-row td { text-align: center; color: #a3927e; padding: 40px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a th:if="${currentAdminUser.hasPermission('products')}" href="/admin/products">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a href="/admin/abandoned-carts" class="active">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1>Abandoned Carts</h1>
+            <p>Customers who started checkout but didn't complete their order — reach out via WhatsApp or call</p>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Inactive Over 1 Hour</div>
+            <div class="stat-value" th:text="${overOneHourCount}">0</div>
+        </div>
+
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>Cart Items</th>
+                    <th>Cart Value</th>
+                    <th>Last Activity</th>
+                    <th>Actions</th>
+                </tr>
+                <tr th:if="${carts.size() == 0}" class="empty-row"><td colspan="6">No abandoned carts right now.</td></tr>
+                <tr th:each="c : ${carts}">
+                    <td th:text="${c.customerName != null and !c.customerName.isEmpty() ? c.customerName : 'Guest'}">Guest</td>
+                    <td th:text="${c.phoneNumber}">0000000000</td>
+                    <td th:text="${c.cartSummary}">Items</td>
+                    <td th:text="'₹' + ${c.cartTotal}">₹0</td>
+                    <td>
+                        <span th:text="${#temporals.format(c.lastActivityAt, 'dd MMM, hh:mm a')}">Date</span>
+                        <span class="urgent-badge" th:if="${c.lastActivityAt.isBefore(#temporals.createNow().minusHours(1))}">1hr+</span>
+                        <span class="contacted-badge" th:if="${c.reminderSent}">Contacted</span>
+                    </td>
+                    <td>
+                        <a th:href="'https://wa.me/91' + ${c.phoneNumber}" target="_blank" class="action-link whatsapp-link">WhatsApp</a>
+                        <a th:href="'tel:' + ${c.phoneNumber}" class="action-link call-link">Call</a>
+                        <a th:if="${!c.reminderSent}" th:href="@{'/admin/abandoned-carts/mark-contacted/' + ${c.id}}" class="action-link contact-link">Mark Contacted</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

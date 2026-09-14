@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf6ec; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+        nav a { text-decoration: none; color: #5a4632; font-weight: 500; margin-left: 20px; }
+
+        .container { max-width: 700px; margin: 40px auto; padding: 0 20px; }
+        .profile-box {
+            background: white; border-radius: 16px; padding: 26px; box-shadow: 0 8px 24px rgba(90,70,50,0.08);
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+        }
+        .profile-box .info p { margin: 4px 0; color: #6b543e; font-size: 14px; }
+        .profile-box .info .name { font-size: 18px; font-weight: 700; color: #4a3627; font-family: 'Playfair Display', serif; }
+        .logout-btn { background: #c62828; color: white; padding: 10px 20px; border-radius: 30px; text-decoration: none; font-size: 14px; font-weight: 600; }
+
+        .order-card { background: white; border-radius: 14px; padding: 20px; margin-top: 18px; box-shadow: 0 4px 16px rgba(90,70,50,0.06); }
+        .order-header { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .order-header .order-id { font-weight: 700; color: #4a3627; }
+        .status-badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: bold; color: white; }
+        .status-PLACED { background-color: #f57c00; }
+        .status-SHIPPED { background-color: #1976d2; }
+        .status-DELIVERED { background-color: #2e7d32; }
+        .order-items { color: #6b543e; font-size: 14px; margin: 8px 0; }
+        .order-total { font-weight: 700; color: #a8791a; }
+        .order-date { color: #a3927e; font-size: 12px; }
+
+        .empty-orders { text-align: center; color: #8a6a44; padding: 40px; background: white; border-radius: 16px; margin-top: 18px; }
+
+        footer { background: #5a4632; color: white; text-align: center; padding: 40px 20px 28px; margin-top: 50px; }
+        footer a { color: #f0e6d2; text-decoration: none; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+    <div>
+        <a href="/store">Shop</a>
+        <a href="/cart">Cart</a>
+    </div>
+</nav>
+
+<div class="container">
+    <h1>My Account</h1>
+
+    <div class="profile-box">
+        <div class="info">
+            <div class="name" th:text="${customer.fullName}">Name</div>
+            <p th:text="${customer.email}">email@example.com</p>
+            <p th:text="${customer.phoneNumber}">Phone</p>
+        </div>
+        <a href="/customer-logout" class="logout-btn">Logout</a>
+    </div>
+
+    <h2 style="font-size:22px; margin-top:36px;">Order History</h2>
+
+    <div class="empty-orders" th:if="${orders.size() == 0}">
+        You haven't placed any orders yet.
+    </div>
+
+    <div class="order-card" th:each="order : ${orders}">
+        <div class="order-header">
+            <span class="order-id" th:text="'Order #' + ${order.id}">Order #0</span>
+            <span class="status-badge" th:classappend="'status-' + ${order.status}" th:text="${order.shipmentStatus != null ? order.shipmentStatus : order.status}">PLACED</span>
+        </div>
+
+        <div class="order-items-images" style="display:flex; gap:8px; flex-wrap:wrap; margin:10px 0;">
+            <img th:each="itemName : ${#strings.arraySplit(order.orderSummary, ',')}"
+                 th:if="${!#strings.trim(itemName).isEmpty() and productImagesByName.get(#strings.trim(itemName).replaceAll(' x\d+$', '')) != null}"
+                 th:src="${productImagesByName.get(#strings.trim(itemName).replaceAll(' x\d+$', ''))}"
+                 alt="Product"
+                 style="width:52px; height:52px; object-fit:cover; border-radius:8px; border:1px solid #f0ebe1;"/>
+        </div>
+        <div class="order-items" th:text="${order.orderSummary}">Items</div>
+
+        <div class="order-total" th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 0)}">₹0</div>
+        <div class="order-date" th:text="${#temporals.format(order.orderDate, 'dd MMM yyyy, hh:mm a')}">Date</div>
+        <a th:href="@{'/orders/invoice/' + ${order.id}}" target="_blank" style="display:inline-block; margin-top:8px; font-size:12px; color:#8a6a44; text-decoration:underline; font-weight:600;">📄 Download Invoice</a>
+
+        <div th:if="${order.awbCode != null and !order.awbCode.isEmpty()}" style="background:#f8f4ec; border-radius:10px; padding:14px 16px; margin-top:12px;">
+            <div style="font-size:12px; font-weight:700; color:#8a6a44; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">Track Your Package</div>
+            <div style="font-size:13px; color:#4a3627; margin-bottom:4px;"><strong th:text="${order.courierName != null ? order.courierName : 'Courier'}">Courier</strong> — AWB: <span th:text="${order.awbCode}">0000</span></div>
+            <div th:if="${order.shipmentStatus != null}" style="display:inline-block; margin-top:4px; padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700; color:white; background-color:#4a7ab5;" th:text="${order.shipmentStatus}">In Transit</div>
+
+            <div th:if="${order.status == 'DELIVERED' and order.deliveredDate != null}" style="font-size:12px; color:#2e7d32; font-weight:600; margin-top:8px;">
+                <span th:if="${order.estimatedDeliveryDate != null and order.deliveredDate.toLocalDate().isBefore(order.estimatedDeliveryDate)}"
+                      th:text="'Delivered early on ' + ${#temporals.format(order.deliveredDate, 'dd MMM yyyy')}">Delivered early</span>
+                <span th:if="${order.estimatedDeliveryDate == null or !order.deliveredDate.toLocalDate().isBefore(order.estimatedDeliveryDate)}"
+                      th:text="'Delivered on ' + ${#temporals.format(order.deliveredDate, 'dd MMM yyyy')}">Delivered</span>
+            </div>
+
+            <div th:if="${order.status != 'DELIVERED' and order.estimatedDeliveryDate != null}" style="font-size:12px; color:#8a6a44; margin-top:8px;">
+                Estimated delivery: <span th:text="${#temporals.format(order.estimatedDeliveryDate, 'dd MMM yyyy')}">Date</span>
+            </div>
+        </div>
+
+        <div th:if="${order.status == 'DELIVERED'}" th:with="existing=${returnsByOrderId.get(order.id)}" style="margin-top:14px;">
+            <div style="display:flex; gap:10px;">
+                <a th:href="@{'/orders/rate-redirect/' + ${order.id}}" style="flex:1; text-align:center; padding:11px 14px; background:#5a4632; color:white; border:1.5px solid #5a4632; border-radius:30px; text-decoration:none; font-size:13px; font-weight:600; box-sizing:border-box;">Rate the Product</a>
+
+                <span th:if="${existing != null}" class="status-badge" style="flex:1; text-align:center; padding:11px 14px; border-radius:30px; background-color:#8a6a44; box-sizing:border-box;" th:text="'Return ' + ${existing.status}">Return Status</span>
+
+                <a th:if="${existing == null and order.deliveredDate != null and order.deliveredDate.isAfter(now.minusDays(5))}"
+                   th:href="@{'/returns/initiate/' + ${order.id}}"
+                   style="flex:1; text-align:center; padding:11px 14px; background:white; color:#5a4632; border:1.5px solid #5a4632; border-radius:30px; text-decoration:none; font-size:13px; font-weight:600; box-sizing:border-box;">Return Your Order</a>
+
+                <span th:if="${existing == null and (order.deliveredDate == null or !order.deliveredDate.isAfter(now.minusDays(5)))}"
+                      style="flex:1; text-align:center; padding:11px 14px; background:#c9beb0; color:#8a7c6c; border-radius:30px; font-size:13px; font-weight:600; cursor:not-allowed; box-sizing:border-box;">Return Window Closed</span>
+            </div>
+
+            <div th:if="${existing != null and existing.status == 'REJECTED'}" style="margin-top:10px; font-size:12px; color:#c62828; text-align:center;">
+                <div th:if="${existing.rejectionReason != null}" th:text="'Reason: ' + ${existing.rejectionReason}"></div>
+                <a th:href="@{'/returns/reupload/' + ${existing.id}}" style="display:block; margin-top:6px; color:#5a4632; font-weight:600; text-decoration:underline;">Re-upload Proof</a>
+            </div>
+
+            <div th:if="${existing == null and order.deliveredDate != null and order.deliveredDate.isAfter(now.minusDays(5))}"
+                 style="text-align:center; font-size:11px; color:#a8791a; margin-top:8px; font-weight:600;"
+                 th:text="'Eligible for return till ' + ${#temporals.format(order.deliveredDate.plusDays(5), 'dd MMM yyyy')}">Eligible till</div>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    <div style="max-width:900px; margin:0 auto 24px; padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div style="font-size:13px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#d9c5a6; margin-bottom:16px;">Secure Payment</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-visa" style="font-size:22px; color:#1a1f71;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-mastercard" style="font-size:22px; color:#eb001b;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-amex" style="font-size:22px; color:#2e77bc;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#333;">UPI</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#00a651;">RuPay</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-building-columns" style="font-size:16px;"></i> Net Banking
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-money-bill-wave" style="font-size:15px; color:#2e7d32;"></i> COD
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:22px; margin-bottom:20px; font-size:24px;">
+        <a href="#" title="Instagram" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-instagram" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="Facebook" style="background:#1877f2; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-facebook-f" style="color:white; font-size:17px;"></i>
+        </a>
+        <a href="#" title="YouTube" style="background:#ff0000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-youtube" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="X (Twitter)" style="background:#000000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-x-twitter" style="color:white; font-size:17px;"></i>
+        </a>
+    </div>
+
+    &copy; 2026 Alvira Jewellery. All rights reserved.<br/>
+    <a href="/about">About</a> |
+    <a href="/contact">Contact</a> |
+    <a href="/returns">Returns</a> |
+    <a href="/support">Support</a>
+</footer>
+
+</body>
+</html>

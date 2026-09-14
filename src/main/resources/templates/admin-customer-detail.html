@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Detail - Admin | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; max-width: 800px; }
+        .back-link { color: #8a6a44; text-decoration: none; font-size: 13px; font-weight: 600; }
+        .admin-topbar { margin: 14px 0 24px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+
+        .profile-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); margin-bottom: 20px; }
+        .profile-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; border-bottom: 1px solid #f0ebe1; }
+        .profile-row:last-child { border-bottom: none; }
+        .profile-row .label { color: #a3927e; }
+        .profile-row .value { font-weight: 600; color: #4a3627; }
+
+        .notes-card { background: white; border-radius: 16px; padding: 24px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); margin-bottom: 20px; }
+        .notes-card h3 { font-size: 15px; margin: 0 0 12px; }
+        .notes-card textarea { width: 100%; padding: 12px; border: 1px solid #e0d7c8; border-radius: 8px; font-family: 'Inter', sans-serif; font-size: 14px; box-sizing: border-box; resize: vertical; }
+        .notes-card button { margin-top: 10px; padding: 9px 20px; background: #2c2118; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; }
+
+        .orders-section h3 { font-size: 15px; margin: 0 0 12px; }
+        .order-row { background: white; border-radius: 12px; padding: 16px; margin-bottom: 10px; box-shadow: 0 4px 14px rgba(44,33,24,0.05); }
+        .order-row .order-top { display: flex; justify-content: space-between; font-weight: 600; color: #4a3627; font-size: 14px; }
+        .order-row .order-items { color: #8a6a44; font-size: 13px; margin-top: 4px; }
+        .status-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; }
+        .status-PLACED { background: #d99a3f; }
+        .status-SHIPPED { background: #4a7ab5; }
+        .status-DELIVERED { background: #4f9e5f; }
+        .empty-orders { text-align: center; color: #a3927e; padding: 30px; background: white; border-radius: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/products" class="active">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <a href="/admin/customers" class="back-link">← Back to Customers</a>
+        <div class="admin-topbar" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <h1 th:text="${customer.fullName}">Customer Name</h1>
+            <div>
+                <span th:if="${customer.blocked}" style="background:#c05a5a; color:white; padding:5px 14px; border-radius:20px; font-size:12px; font-weight:700; margin-right:10px;">BLOCKED</span>
+                <a th:href="@{'/admin/customers/' + ${customer.id} + '/toggle-block'}"
+                   th:text="${customer.blocked} ? 'Unblock Customer' : 'Block Customer'"
+                   th:style="${customer.blocked} ? 'background:#2e7d32;' : 'background:#c05a5a;'"
+                   style="color:white; padding:9px 18px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:600;"
+                   onclick="return confirm('Are you sure?')">Block Customer</a>
+            </div>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-row"><span class="label">Email</span><span class="value" th:text="${customer.email}">email</span></div>
+            <div class="profile-row"><span class="label">Phone</span><span class="value" th:text="${customer.phoneNumber}">Phone</span></div>
+            <div class="profile-row"><span class="label">Joined</span><span class="value" th:text="${#temporals.format(customer.createdAt, 'dd MMM yyyy')}">Date</span></div>
+            <div class="profile-row"><span class="label">Total Orders</span><span class="value" th:text="${orders.size()}">0</span></div>
+        </div>
+
+        <div class="notes-card">
+            <h3>Internal Notes</h3>
+            <form th:action="@{'/admin/customers/' + ${customer.id} + '/notes'}" method="post">
+                <textarea name="adminNotes" rows="3" placeholder="Add private notes about this customer (not visible to them)" th:text="${customer.adminNotes}"></textarea>
+                <button type="submit">Save Notes</button>
+            </form>
+        </div>
+
+        <div class="orders-section">
+            <h3>Order History</h3>
+            <div th:if="${orders.size() == 0}" class="empty-orders">No orders yet.</div>
+            <div class="order-row" th:each="order : ${orders}">
+                <div class="order-top">
+                    <span th:text="'Order #' + ${order.id}">#0</span>
+                    <span class="status-badge" th:classappend="'status-' + ${order.status}" th:text="${order.status}">PLACED</span>
+                </div>
+                <div class="order-items" th:text="${order.orderSummary}">Items</div>
+                <div class="order-items" th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 0)} + ' — ' + ${#temporals.format(order.orderDate, 'dd MMM yyyy')}">₹0</div>
+            </div>
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

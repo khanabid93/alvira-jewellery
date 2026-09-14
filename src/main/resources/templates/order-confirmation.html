@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Confirmed | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #fdf6ec 0%, #f3e4d0 40%, #e8d3b0 100%);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            color: #3d2e1f;
+        }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+
+        .confirmation-body { max-width: 620px; margin: 0 auto; padding: 40px 20px 60px; }
+
+        .success-header { text-align: center; margin-bottom: 30px; }
+        .success-icon {
+            width: 72px; height: 72px; background: #2e7d32; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; margin: 0 auto 18px;
+            box-shadow: 0 8px 24px rgba(46,125,50,0.3);
+        }
+        .success-icon svg { width: 36px; height: 36px; }
+        .success-header h1 { font-family: 'Playfair Display', serif; font-size: 28px; color: #4a3627; margin: 0 0 8px; }
+        .success-header p { color: #6b543e; font-size: 15px; margin: 0; }
+
+        .glass-card {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(255,255,255,0.7);
+            border-radius: 18px;
+            box-shadow: 0 8px 32px rgba(90,70,50,0.10);
+            padding: 26px;
+            margin-bottom: 20px;
+        }
+
+        .order-id-row { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; margin-bottom: 16px; border-bottom: 1px solid rgba(90,70,50,0.12); }
+        .order-id-row .label { font-size: 12px; color: #a3927e; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+        .order-id-row .value { font-family: 'Playfair Display', serif; font-size: 20px; color: #4a3627; font-weight: 700; }
+        .status-badge { background: #d99a3f; color: white; padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+        .detail-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+        .detail-row .label { color: #8a6a44; }
+        .detail-row .value { color: #4a3627; font-weight: 600; text-align: right; max-width: 60%; }
+
+        .section-label { font-size: 13px; font-weight: 700; color: #4a3627; margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .items-line { color: #6b543e; font-size: 14px; line-height: 1.7; }
+
+        .total-row { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(90,70,50,0.12); }
+        .total-row .label { font-size: 16px; color: #4a3627; font-weight: 600; }
+        .total-row .value { font-family: 'Playfair Display', serif; font-size: 26px; color: #a8791a; font-weight: 700; }
+
+        .map-frame { width: 100%; height: 260px; border: 0; border-radius: 14px; display: block; }
+
+        .action-buttons { display: flex; gap: 12px; margin-top: 8px; }
+        .btn-primary, .btn-secondary {
+            flex: 1; text-align: center; padding: 14px; border-radius: 30px; font-weight: 600;
+            text-decoration: none; font-size: 14px; cursor: pointer; border: none;
+        }
+        .btn-primary { background: #5a4632; color: white; }
+        .btn-secondary { background: white; color: #5a4632; border: 2px solid #5a4632; }
+
+        @media (max-width: 768px) {
+            .confirmation-body { padding: 24px 16px 40px; }
+            .success-header h1 { font-size: 22px; }
+            .glass-card { padding: 18px; }
+            .total-row .value { font-size: 22px; }
+        }
+
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+</nav>
+
+<div class="confirmation-body">
+
+    <div class="success-header">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+        </div>
+        <h1>Order Confirmed!</h1>
+        <p>Thank you for shopping with Alvira Jewellery — your order is on its way to being prepared.</p>
+    </div>
+
+    <div class="glass-card">
+        <div class="order-id-row">
+            <div>
+                <div class="label">Order ID</div>
+                <div class="value" th:text="'#' + ${order.id}">#0</div>
+            </div>
+            <span class="status-badge" th:text="${order.status}">PLACED</span>
+        </div>
+
+        <div class="detail-row">
+            <span class="label">Customer</span>
+            <span class="value" th:text="${order.customerName}">Name</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Phone</span>
+            <span class="value" th:text="${order.phoneNumber}">Phone</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Delivery Address</span>
+            <span class="value" th:text="${order.address}">Address</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">City / State</span>
+            <span class="value" th:text="${order.city} + ', ' + ${order.state}">City, State</span>
+        </div>
+        <div class="detail-row">
+            <span class="label">Pincode</span>
+            <span class="value" th:text="${order.pincode}">000000</span>
+        </div>
+    </div>
+
+    <div class="glass-card">
+        <div class="section-label">Items Ordered</div>
+        <div class="items-line" th:text="${order.orderSummary}">Items</div>
+        <div class="total-row">
+            <span class="label">Total Paid</span>
+            <span class="value" th:text="'₹' + ${order.totalAmount}">₹0</span>
+        </div>
+    </div>
+
+    <div class="glass-card" th:if="${order.pincode != null and !order.pincode.isEmpty()}">
+        <div class="section-label">Delivery Location</div>
+        <iframe class="map-frame"
+                th:src="@{'https://maps.google.com/maps?q=' + ${order.pincode} + '&output=embed'}"
+                loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+
+    <div class="action-buttons">
+        <a href="/store" class="btn-secondary">Continue Shopping</a>
+        <a href="/account" class="btn-primary">View My Orders</a>
+    </div>
+
+</div>
+
+</body>
+</html>

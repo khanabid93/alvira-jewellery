@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Staff Management - Admin | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 24px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+        .admin-topbar p { color: #8a6a44; font-size: 13px; margin: 4px 0 0; }
+
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; margin-bottom: 28px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 18px; text-align: left; font-size: 13px; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; }
+        tbody tr:last-child { border-bottom: none; }
+        .role-badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; }
+        .role-ADMIN { background: #4a7ab5; }
+        .role-STAFF { background: #a3927e; }
+        .action-link { text-decoration: none; font-weight: 600; font-size: 12px; margin-right: 12px; }
+        .edit-link { color: #b58a4b; }
+        .delete-link { color: #c05a5a; }
+
+        .form-box { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); max-width: 520px; }
+        .form-box h3 { margin-top: 0; font-size: 16px; color: #2c2118; }
+        label { display: block; margin-top: 14px; font-weight: 600; font-size: 13px; color: #4a3627; }
+        input, select { width: 100%; padding: 10px 12px; margin-top: 6px; border: 1px solid #e0d7c8; border-radius: 8px; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 14px; }
+        .field-hint { font-size: 11px; color: #a3927e; margin-top: 4px; }
+
+        .permissions-box { margin-top: 18px; padding: 14px; background: #f8f4ec; border-radius: 10px; }
+        .permissions-box .perm-title { font-size: 12px; font-weight: 700; color: #6b543e; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+        .perm-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; }
+        .perm-row input { width: auto; margin: 0; }
+        .perm-row label { margin: 0; font-weight: 500; font-size: 13px; color: #4a3627; }
+
+        .save-btn { margin-top: 20px; padding: 12px; width: 100%; background: #2c2118; color: white; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/products">Products</a>
+            <a href="/admin/orders">Orders</a>
+            <a href="/admin/coupons">Coupons</a>
+            <a href="/admin/offers">Offers</a>
+            <a href="/admin/returns">Returns</a>
+            <a href="/admin/reports">Reports</a>
+            <a href="/admin/logistics">Logistics</a>
+            <a href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a href="/admin/customers">Customers</a>
+            <a href="/admin/staff" class="active">Staff Accounts</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1>Staff Accounts</h1>
+            <p>Create staff logins and control exactly what each one can access</p>
+        </div>
+
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+                <tr th:each="s : ${staffList}">
+                    <td th:text="${s.username}">username</td>
+                    <td><span class="role-badge" th:classappend="'role-' + ${s.role}" th:text="${s.role}">ADMIN</span></td>
+                    <td th:text="${s.createdAt != null ? #temporals.format(s.createdAt, 'dd MMM yyyy') : '—'}">Date</td>
+                    <td>
+                        <a th:href="@{'/admin/staff/edit/' + ${s.id}}" class="action-link edit-link">Edit</a>
+                        <a th:href="@{'/admin/staff/delete/' + ${s.id}}" class="action-link delete-link" onclick="return confirm('Delete this account?')">Delete</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-box">
+            <h3 th:text="${newStaff.id} != null ? 'Edit Account' : 'Create New Staff Account'">Create New Staff Account</h3>
+            <form th:action="@{/admin/staff/save}" th:object="${newStaff}" method="post">
+                <input type="hidden" th:field="*{id}"/>
+
+                <label>Username</label>
+                <input type="text" th:field="*{username}" required/>
+
+                <label th:text="${newStaff.id} != null ? 'New Password' : 'Password'">Password</label>
+                <div class="field-hint" th:if="${newStaff.id} != null">Leave blank to keep the current password</div>
+                <input type="password" name="newPassword" th:required="${newStaff.id} == null"/>
+
+                <label>Role</label>
+                <select th:field="*{role}">
+                    <option value="STAFF">Staff</option>
+                    <option value="ADMIN">Admin (full access)</option>
+                </select>
+
+                <div class="permissions-box">
+                    <div class="perm-title">Staff Permissions (ignored if role is Admin)</div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canManageProducts}" id="p1"/><label for="p1">Manage Products</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canManageOrders}" id="p2"/><label for="p2">Manage Orders</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canManageCoupons}" id="p3"/><label for="p3">Manage Coupons</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canManageOffers}" id="p4"/><label for="p4">Manage Offers</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canManageLogistics}" id="p5"/><label for="p5">Manage Logistics</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canManageCustomers}" id="p6"/><label for="p6">Manage Customers (incl. blocking)</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canViewReports}" id="p7"/><label for="p7">View Reports</label></div>
+                    <div class="perm-row"><input type="checkbox" th:field="*{canViewRevenue}" id="p8"/><label for="p8">View Revenue Figures</label></div>
+                </div>
+
+                <button type="submit" class="save-btn">Save Account</button>
+            </form>
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>

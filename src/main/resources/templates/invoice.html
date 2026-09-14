@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text="'Invoice - Order #' + ${order.id}">Invoice</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 700px; margin: 40px auto; color: #333; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #5a4632; padding-bottom: 16px; margin-bottom: 24px; }
+        .header h1 { color: #5a4632; margin: 0; }
+        .header .invoice-meta { text-align: right; font-size: 13px; color: #666; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; font-size: 14px; }
+        th { background: #f5f0e6; }
+        .total-row { font-weight: bold; font-size: 16px; }
+        .section { margin-top: 20px; }
+        .section h3 { font-size: 13px; text-transform: uppercase; color: #8a6a44; margin-bottom: 6px; }
+        @media print { body { margin: 0; } .no-print { display: none; } }
+    </style>
+</head>
+<body>
+
+<a href="/account" class="no-print" style="display:inline-block; margin-bottom:16px; color:#5a4632; text-decoration:none; font-size:13px; font-weight:600;">← Back to My Account</a>
+<div class="header">
+    <div>
+        <h1>Alvira Jewellery</h1>
+        <div style="font-size:12px; color:#888;">Elegant Fashion Jewellery</div>
+    </div>
+    <div class="invoice-meta">
+        <div><strong>Invoice for Order #<span th:text="${order.id}">0</span></strong></div>
+        <div th:text="${#temporals.format(order.orderDate, 'dd MMM yyyy')}">Date</div>
+    </div>
+</div>
+
+<div class="section">
+    <h3>Billed To</h3>
+    <div th:text="${order.customerName}">Name</div>
+    <div th:text="${order.address}">Address</div>
+    <div th:text="${order.city} + ', ' + ${order.state} + ' - ' + ${order.pincode}">City</div>
+    <div th:text="${order.phoneNumber}">Phone</div>
+</div>
+
+<table>
+    <tr><th>Description</th><th style="text-align:right;">Amount</th></tr>
+    <tr><td th:text="${order.orderSummary}">Items</td><td style="text-align:right;" th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 0)}">₹0</td></tr>
+    <tr class="total-row"><td>Total Paid</td><td style="text-align:right;" th:text="'₹' + ${#numbers.formatDecimal(order.totalAmount, 1, 0)}">₹0</td></tr>
+</table>
+
+<div class="section">
+    <h3>Payment Mode</h3>
+    <div th:text="${order.paymentMode}">COD</div>
+</div>
+
+<div class="section" style="margin-top:40px; font-size:11px; color:#999;">
+    This is a computer-generated invoice and does not require a signature.
+</div>
+
+<script>window.print();</script>
+
+</body>
+</html>

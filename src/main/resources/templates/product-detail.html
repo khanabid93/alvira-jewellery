@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name} + ' | Alvira Jewellery'">Product | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf6ec; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+        nav a.cart-link { position: relative; text-decoration: none; color: #5a4632; font-size: 22px; }
+        .cart-badge { position: absolute; top: -8px; right: -10px; background: #c62828; color: white; font-size: 11px; font-weight: bold; border-radius: 50%; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; }
+
+        .pdp-container { max-width: 1100px; margin: 30px auto; display: flex; gap: 44px; padding: 0 20px; flex-wrap: wrap; }
+
+        /* ===== Left: thumbnail rail + main image ===== */
+        .pdp-gallery { flex: 1.1; min-width: 320px; display: flex; gap: 14px; }
+        .thumb-rail { display: flex; flex-direction: column; gap: 10px; max-height: 500px; overflow-y: auto; }
+        .thumb-item {
+            width: 64px; height: 64px; border-radius: 8px; overflow: hidden; cursor: pointer;
+            border: 2px solid transparent; flex-shrink: 0; background: #eee0cc; position: relative;
+        }
+        .thumb-item.active { border-color: #5a4632; }
+        .thumb-item img, .thumb-item video { width: 100%; height: 100%; object-fit: cover; }
+        .thumb-item .play-icon { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; background: rgba(0,0,0,0.25); }
+
+        .main-media-frame { flex-grow: 1; border-radius: 14px; overflow: hidden; background: #eee0cc; box-shadow: 0 8px 28px rgba(90,70,50,0.12); aspect-ratio: 4 / 5; }
+        .main-media-frame img, .main-media-frame video { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+        /* ===== Right: info panel ===== */
+        .pdp-info { flex: 1; min-width: 300px; }
+        .pdp-brand { color: #8a6a44; font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; }
+        .pdp-name { font-size: 24px; margin: 8px 0 12px; color: #4a3627; font-weight: 600; }
+        .pdp-rating-pill { display: inline-flex; align-items: center; gap: 6px; background: #2e7d32; color: white; padding: 4px 10px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+
+        .pdp-price-row { margin: 16px 0 4px; display: flex; align-items: baseline; gap: 10px; }
+        .pdp-price { font-size: 26px; font-weight: 700; color: #4a3627; }
+        .pdp-original { text-decoration: line-through; color: #a3927e; font-size: 15px; }
+        .pdp-discount { color: #2e7d32; font-weight: 700; font-size: 14px; }
+        .pdp-tax-note { font-size: 12px; color: #a3927e; margin-bottom: 16px; }
+
+        .pdp-stock { color: #c62828; font-weight: 600; font-size: 13px; margin: 4px 0 16px; }
+
+        .pdp-buttons { display: flex; gap: 12px; margin-top: 8px; }
+        .btn-add, .btn-buy {
+            flex: 1; text-align: center; padding: 14px; border-radius: 8px; font-weight: 600;
+            text-decoration: none; font-size: 14px; cursor: pointer; border: none; letter-spacing: 0.3px;
+        }
+        .btn-add { background: white; color: #5a4632; border: 1.5px solid #5a4632; }
+        .btn-buy { background: #5a4632; color: white; }
+
+        /* ===== Collapsible sections ===== */
+        .accordion { margin-top: 28px; border-top: 1px solid #ebe0cf; }
+        .accordion-item { border-bottom: 1px solid #ebe0cf; }
+        .accordion-header {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px 2px; cursor: pointer; font-weight: 600; color: #4a3627; font-size: 14px;
+        }
+        .accordion-header .arrow { transition: transform 0.2s ease; color: #a8791a; font-size: 14px; }
+        .accordion-header.open .arrow { transform: rotate(180deg); }
+        .accordion-body { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+        .accordion-body-inner { padding: 0 2px 18px; color: #6b543e; line-height: 1.7; font-size: 14px; }
+        .spec-row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .spec-row span:first-child { color: #a3927e; }
+
+        /* ===== Related & Reviews (unchanged) ===== */
+        .related-section { max-width: 1100px; margin: 50px auto 0; padding: 0 20px; }
+        .related-section h2 { font-size: 22px; margin-bottom: 20px; }
+        .related-grid { display: flex; flex-wrap: wrap; gap: 20px; }
+        .related-card { background: white; border-radius: 14px; padding: 14px; width: 200px; text-align: center; box-shadow: 0 6px 20px rgba(90,70,50,0.08); transition: transform 0.25s ease, box-shadow 0.25s ease; }
+
+        @media (max-width: 768px) {
+            .related-grid { gap: 12px; justify-content: space-between; }
+            .related-grid .related-card { width: calc(50% - 6px) !important; padding: 10px; }
+            .related-card img { height: 100px; }
+            .related-name { font-size: 12px; }
+            .related-price { font-size: 13px; }
+        }
+        .related-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(90,70,50,0.15); }
+        .related-card img { width: 100%; height: 150px; object-fit: cover; border-radius: 10px; }
+        .related-name { font-weight: 600; margin-top: 10px; color: #4a3627; font-size: 14px; }
+        .related-price { color: #a8791a; font-size: 15px; font-weight: 600; margin-top: 4px; }
+
+        .reviews-section { max-width: 1100px; margin: 50px auto; padding: 0 20px 60px; }
+        .reviews-summary { display: flex; gap: 40px; align-items: center; background: white; border-radius: 16px; padding: 30px; box-shadow: 0 8px 24px rgba(90,70,50,0.08); flex-wrap: wrap; }
+        .avg-rating-box { text-align: center; }
+        .avg-rating-box .big-num { font-size: 42px; font-weight: 700; color: #4a3627; font-family: 'Playfair Display', serif; }
+        .avg-rating-box .stars { color: #d4a017; font-size: 18px; }
+        .avg-rating-box .count { color: #8a6a44; font-size: 13px; margin-top: 4px; }
+        .rating-bars { flex-grow: 1; min-width: 220px; }
+        .rating-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 13px; color: #6b543e; }
+        .bar-track { flex-grow: 1; height: 8px; background: #eee0cc; border-radius: 4px; overflow: hidden; }
+        .bar-fill { height: 100%; background: #d4a017; }
+        .review-card { background: white; border-radius: 12px; padding: 18px 22px; margin-top: 16px; box-shadow: 0 4px 14px rgba(90,70,50,0.06); }
+        .review-card .stars { color: #d4a017; font-size: 14px; }
+        .review-card .review-name { font-weight: 600; color: #4a3627; margin-top: 6px; }
+        .review-card .review-date { color: #a3927e; font-size: 12px; }
+        .review-card .review-comment { margin-top: 8px; color: #6b543e; line-height: 1.6; font-size: 14px; }
+        .write-review-form { background: white; border-radius: 16px; padding: 26px; margin-top: 30px; box-shadow: 0 8px 24px rgba(90,70,50,0.08); }
+        .write-review-form label { display: block; margin-top: 14px; font-weight: 600; font-size: 14px; color: #4a3627; }
+        .write-review-form input, .write-review-form select, .write-review-form textarea { width: 100%; padding: 10px; margin-top: 6px; border: 1px solid #ddd; border-radius: 8px; font-family: 'Inter', sans-serif; }
+        .write-review-form button { margin-top: 16px; background: #5a4632; color: white; border: none; padding: 12px 26px; border-radius: 30px; font-weight: 600; cursor: pointer; }
+
+        @media (max-width: 768px) {
+            .pdp-container { flex-direction: column; gap: 20px; }
+            .pdp-gallery { flex-direction: row; }
+            .main-media-frame { aspect-ratio: 1 / 1; }
+        }
+
+        footer {
+            background: #5a4632;
+            color: white;
+            text-align: center;
+            padding: 40px 20px 28px;
+            margin-top: 50px;
+        }
+        footer a {
+            color: #f0e6d2;
+            text-decoration: none;
+        }
+
+        #toast-container {
+            position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; display: flex; flex-direction: column; gap: 10px; align-items: center;
+        }
+        .toast {
+            background: #2c2118; color: white; padding: 13px 24px; border-radius: 30px;
+            font-size: 14px; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            opacity: 0; transform: translateY(20px); transition: all 0.3s ease;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast.success { background: #2e7d32; }
+    </style>
+</head>
+<body>
+<div id="toast-container"></div>
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+    <div style="display:flex; align-items:center; gap:20px;">
+        <a href="/cart" class="cart-link">
+            🛍️
+            <span th:if="${cartCount > 0}" th:text="${cartCount}" class="cart-badge"></span>
+        </a>
+        <a th:href="${session.loggedInCustomer != null} ? '/account' : '/login'" style="text-decoration:none; color:#5a4632; font-size:22px;">👤</a>
+    </div>
+</nav>
+
+<div class="pdp-container">
+
+    <div class="pdp-gallery">
+        <div class="thumb-rail" id="thumbRail">
+            <div class="thumb-item active" data-type="image" th:data-src="${product.imageUrl}">
+                <img th:src="${product.imageUrl}" alt="Thumbnail"/>
+            </div>
+            <div class="thumb-item" th:if="${product.additionalImages != null and !product.additionalImages.isEmpty()}"
+                 th:each="img : ${#strings.arraySplit(product.additionalImages, ',')}"
+                 data-type="image" th:data-src="${#strings.trim(img)}">
+                <img th:src="${#strings.trim(img)}" alt="Thumbnail"/>
+            </div>
+            <div class="thumb-item" th:if="${product.videoUrl != null and !product.videoUrl.isEmpty()}"
+                 data-type="video" th:data-src="${product.videoUrl}">
+                <video th:src="${product.videoUrl}" muted></video>
+                <span class="play-icon">▶</span>
+            </div>
+        </div>
+
+        <div class="main-media-frame" id="mainMediaFrame">
+            <img th:src="${product.imageUrl}" alt="Product Image" id="mainMediaImg"/>
+        </div>
+    </div>
+
+    <div class="pdp-info">
+        <div class="pdp-brand">Alvira Jewellery</div>
+        <h1 class="pdp-name" th:text="${product.name}">Product Name</h1>
+
+        <span class="pdp-rating-pill" th:if="${reviewCount > 0}">
+            <span th:text="${avgRating}">4.5</span> ★ <span th:text="'(' + ${reviewCount} + ')'">(0)</span>
+        </span>
+
+        <div class="pdp-price-row">
+            <span class="pdp-price" th:text="'₹' + ${product.price}">₹0</span>
+            <span class="pdp-original" th:if="${product.discountPercent > 0}" th:text="'₹' + ${product.originalPrice}">₹0</span>
+            <span class="pdp-discount" th:if="${product.discountPercent > 0}" th:text="${product.discountPercent} + '% OFF'">0% OFF</span>
+        </div>
+        <div class="pdp-tax-note">Inclusive of all taxes</div>
+
+        <div class="pdp-stock" th:if="${product.stockQuantity != null and product.stockQuantity <= 5 and product.stockQuantity > 0}" th:text="'Only ' + ${product.stockQuantity} + ' left in stock!'"></div>
+        <div class="pdp-stock" th:if="${product.stockQuantity != null and product.stockQuantity == 0}">Out of Stock</div>
+
+        <div class="pdp-buttons" th:if="${(product.stockQuantity == null or product.stockQuantity > 0) and quantityInCart == 0}">
+            <a th:href="@{'/add-to-cart/' + ${product.id} + '?redirectTo=/product/' + ${product.id}}" class="btn-add">Add to Cart</a>
+            <a th:href="@{'/buy-now/' + ${product.id}}" class="btn-buy">Buy Now</a>
+        </div>
+
+        <div th:if="${quantityInCart > 0}" style="margin-top:8px;">
+            <div style="display:flex; align-items:center; justify-content:center; gap:18px; background:#f8f4ec; border-radius:8px; padding:12px;">
+                <a th:href="@{'/update-cart-quantity/' + ${product.id} + '?quantity=' + (${quantityInCart} - 1) + '&redirectTo=/product/' + ${product.id}}" style="width:34px; height:34px; border-radius:50%; border:1.5px solid #5a4632; background:white; color:#5a4632; font-weight:700; font-size:18px; text-decoration:none; display:flex; align-items:center; justify-content:center;">−</a>
+                <span style="font-weight:700; font-size:18px; color:#4a3627;" th:text="${quantityInCart}">1</span>
+                <a th:href="@{'/update-cart-quantity/' + ${product.id} + '?quantity=' + (${quantityInCart} + 1) + '&redirectTo=/product/' + ${product.id}}" style="width:34px; height:34px; border-radius:50%; border:1.5px solid #5a4632; background:white; color:#5a4632; font-weight:700; font-size:18px; text-decoration:none; display:flex; align-items:center; justify-content:center;">+</a>
+            </div>
+            <div th:if="${offerBadge != null}" style="text-align:center; margin-top:10px; font-size:13px; color:#a8791a; font-weight:600; background:rgba(181,138,75,0.1); padding:8px 14px; border-radius:8px;" th:text="${offerBadge}"></div>
+        </div>
+
+        <div class="accordion">
+            <div class="accordion-item">
+                <div class="accordion-header open" onclick="toggleAccordion(this)">
+                    <span>Description</span>
+                    <span class="arrow">▾</span>
+                </div>
+                <div class="accordion-body" style="max-height:300px;">
+                    <div class="accordion-body-inner" th:text="${product.description}">Product description goes here.</div>
+                </div>
+            </div>
+            <div class="accordion-item">
+                <div class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Product Details</span>
+                    <span class="arrow">▾</span>
+                </div>
+                <div class="accordion-body">
+                    <div class="accordion-body-inner">
+                        <div class="spec-row"><span>Brand</span><span>Alvira Jewellery</span></div>
+                        <div class="spec-row" th:if="${product.category != null}"><span>Category</span><span th:text="${product.category}">—</span></div>
+                        <div class="spec-row" th:if="${product.weight != null}"><span>Weight</span><span th:text="${product.weight} + ' g'">—</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="related-section" th:if="${relatedProducts != null and relatedProducts.size() > 0}">
+    <h2>You May Also Like</h2>
+    <div class="related-grid">
+        <div class="related-card" th:each="rp : ${relatedProducts}">
+            <a th:href="@{'/product/' + ${rp.id}}" style="text-decoration:none; color:inherit;">
+                <img th:src="${rp.imageUrl}" alt="Product Image"/>
+                <div class="related-name" th:text="${rp.name}">Product Name</div>
+                <div class="related-price" th:text="'₹' + ${rp.price}">₹0</div>
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="reviews-section">
+    <h2>Ratings & Reviews</h2>
+
+    <div class="reviews-summary">
+        <div class="avg-rating-box">
+            <div class="big-num" th:text="${reviewCount > 0 ? avgRating : '—'}">4.5</div>
+            <div class="stars">★★★★★</div>
+            <div class="count" th:text="${reviewCount} + ' reviews'">0 reviews</div>
+        </div>
+        <div class="rating-bars">
+            <div class="rating-bar-row" th:each="star : ${#numbers.sequence(5, 1)}">
+                <span th:text="${star} + ' ★'">5 ★</span>
+                <div class="bar-track">
+                    <div class="bar-fill" th:style="${'width:' + (reviewCount > 0 ? (starCounts[star] * 100 / reviewCount) : 0) + '%'}"></div>
+                </div>
+                <span th:text="${starCounts[star]}">0</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="review-card" th:each="review : ${reviews}">
+        <div class="stars" th:text="${'★'.repeat(review.rating)} + ${'☆'.repeat(5 - review.rating)}">★★★★★</div>
+        <div class="review-name" th:text="${review.customerName}">Name</div>
+        <div class="review-date" th:text="${review.reviewDate}">Date</div>
+        <div class="review-comment" th:text="${review.comment}">Comment</div>
+        <img th:if="${review.photoPath != null and !review.photoPath.isEmpty()}" th:src="${review.photoPath}" alt="Review photo" style="width:100px; height:100px; object-fit:cover; border-radius:10px; margin-top:10px; border:1px solid #eee;"/>
+    </div>
+
+    <div class="write-review-form" id="reviewForm">
+        <h2 style="font-size:20px;">Write a Review</h2>
+
+        <div th:if="${canReview}">
+            <form th:action="@{'/product/' + ${product.id} + '/review'}" method="post" enctype="multipart/form-data">
+                <label>Your Name</label>
+                <input type="text" name="customerName" required/>
+
+                <label>Rating</label>
+                <select name="rating" required>
+                    <option value="5">5 - Excellent</option>
+                    <option value="4">4 - Good</option>
+                    <option value="3">3 - Average</option>
+                    <option value="2">2 - Poor</option>
+                    <option value="1">1 - Bad</option>
+                </select>
+
+                <label>Your Review</label>
+                <textarea name="comment" rows="3" required></textarea>
+
+                <label>Add a Photo (optional)</label>
+                <input type="file" name="photo" accept="image/*"/>
+
+                <button type="submit">Submit Review</button>
+            </form>
+        </div>
+
+        <div th:if="${!canReview and isLoggedIn}" style="color:#8a6a44; font-size:14px; padding:16px; background:#f8f4ec; border-radius:10px;">
+            You can review this product once your order has been delivered.
+        </div>
+
+        <div th:if="${!isLoggedIn}" style="color:#8a6a44; font-size:14px; padding:16px; background:#f8f4ec; border-radius:10px;">
+            <a th:href="@{/login}" style="color:#5a4632; font-weight:600;">Log in</a> to write a review after your order is delivered.
+        </div>
+    </div>
+</div>
+
+<script>
+    function selectThumbnail(el) {
+        document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+
+        const type = el.getAttribute('data-type');
+        const src = el.getAttribute('data-src');
+        const frame = document.getElementById('mainMediaFrame');
+
+        if (type === 'video') {
+            frame.innerHTML = `<video src="${src}" controls autoplay muted loop playsinline></video>`;
+        } else {
+            frame.innerHTML = `<img src="${src}" alt="Product Image"/>`;
+        }
+    }
+
+    document.querySelectorAll('.thumb-item').forEach(item => {
+        item.addEventListener('click', () => selectThumbnail(item));
+    });
+
+    function toggleAccordion(header) {
+        const body = header.nextElementSibling;
+        const isOpen = header.classList.contains('open');
+
+        document.querySelectorAll('.accordion-header').forEach(h => {
+            h.classList.remove('open');
+            h.nextElementSibling.style.maxHeight = null;
+        });
+
+        if (!isOpen) {
+            header.classList.add('open');
+            body.style.maxHeight = body.scrollHeight + 'px';
+        }
+    }
+</script>
+<footer>
+    <div style="max-width:900px; margin:0 auto 24px; padding-bottom:24px; border-bottom:1px solid rgba(255,255,255,0.15);">
+        <div style="font-size:13px; font-weight:700; letter-spacing:0.5px; text-transform:uppercase; color:#d9c5a6; margin-bottom:16px;">Secure Payment</div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;">
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-visa" style="font-size:22px; color:#1a1f71;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-mastercard" style="font-size:22px; color:#eb001b;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 12px; display:flex; align-items:center; gap:6px;">
+                <i class="fa-brands fa-cc-amex" style="font-size:22px; color:#2e77bc;"></i>
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#333;">UPI</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:700; font-size:13px; color:#00a651;">RuPay</div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-building-columns" style="font-size:16px;"></i> Net Banking
+            </div>
+            <div style="background:white; border-radius:6px; padding:8px 14px; display:flex; align-items:center; gap:6px; font-weight:600; font-size:12px; color:#333;">
+                <i class="fa-solid fa-money-bill-wave" style="font-size:15px; color:#2e7d32;"></i> COD
+            </div>
+        </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:22px; margin-bottom:20px; font-size:24px;">
+        <a href="#" title="Instagram" style="background:linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-instagram" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="Facebook" style="background:#1877f2; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-facebook-f" style="color:white; font-size:17px;"></i>
+        </a>
+        <a href="#" title="YouTube" style="background:#ff0000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-youtube" style="color:white; font-size:19px;"></i>
+        </a>
+        <a href="#" title="X (Twitter)" style="background:#000000; width:38px; height:38px; border-radius:10px; display:flex; align-items:center; justify-content:center; text-decoration:none;">
+            <i class="fa-brands fa-x-twitter" style="color:white; font-size:17px;"></i>
+        </a>
+    </div>
+
+    &copy; 2026 Alvira Jewellery. All rights reserved.<br/>
+    <a href="/about">About</a> |
+    <a href="/contact">Contact</a> |
+    <a href="/returns">Returns</a> |
+    <a href="/support">Support</a>
+</footer>
+<script>
+    function showToast(message, type) {
+        const container = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.className = 'toast' + (type === 'success' ? ' success' : '');
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const toastMsg = urlParams.get('toast');
+    if (toastMsg) {
+        showToast(decodeURIComponent(toastMsg), 'success');
+        window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    }
+</script>
+
+</body>
+</html>

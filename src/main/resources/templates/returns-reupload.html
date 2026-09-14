@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Re-upload Proof | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #fdf6ec; color: #3d2e1f; }
+        h1 { font-family: 'Playfair Display', serif; text-align: center; color: #4a3627; margin: 40px 0 10px; }
+        .subtitle { text-align: center; color: #8a6a44; font-size: 14px; margin-bottom: 30px; }
+        nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 30px; background: white; border-bottom: 1px solid #eee; position: sticky; top: 0; z-index: 100; }
+        nav .logo { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #5a4632; text-decoration: none; }
+
+        .form-container { max-width: 500px; margin: 0 auto; padding: 0 20px 60px; }
+        .rejection-box { background: #fdecea; border: 1px solid #f5c6c2; border-radius: 12px; padding: 16px; margin-bottom: 24px; }
+        .rejection-box .label { font-size: 12px; font-weight: 700; color: #c62828; text-transform: uppercase; letter-spacing: 0.5px; }
+        .rejection-box .reason { font-size: 14px; color: #6b543e; margin-top: 6px; }
+
+        .form-box { background: white; border-radius: 16px; padding: 28px; box-shadow: 0 4px 20px rgba(90,70,50,0.08); }
+        label { display: block; margin-top: 16px; font-weight: 600; font-size: 13px; color: #4a3627; }
+        input[type="file"] { width: 100%; padding: 9px; margin-top: 6px; border: 1px solid #e0d7c8; border-radius: 8px; background: #f8f4ec; cursor: pointer; box-sizing: border-box; }
+        .field-hint { font-size: 11px; color: #a3927e; margin-top: 4px; }
+
+        .submit-btn { margin-top: 24px; padding: 14px; width: 100%; background: #5a4632; color: white; border: none; border-radius: 30px; font-size: 15px; font-weight: 600; cursor: pointer; }
+        .back-link { display: block; text-align: center; margin-top: 16px; color: #8a6a44; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<nav>
+    <a href="/" class="logo">Alvira Jewellery</a>
+</nav>
+
+<h1>Re-upload Proof</h1>
+<p class="subtitle">Update the files your return request needs</p>
+
+<div class="form-container">
+
+    <div class="rejection-box">
+        <div class="label">Why your return was rejected</div>
+        <div class="reason" th:text="${returnRequest.rejectionReason != null ? returnRequest.rejectionReason : 'Please review and re-upload the required proof.'}">Reason</div>
+    </div>
+
+    <div class="form-box">
+        <form th:action="@{'/returns/reupload/' + ${returnRequest.id}}" method="post" enctype="multipart/form-data">
+
+            <label>Photo of the Product</label>
+            <div class="field-hint">Only upload if this was the issue — leave blank to keep your existing file</div>
+            <input type="file" name="productImage" accept="image/*"/>
+
+            <label>Photo of the Shipping Label</label>
+            <div class="field-hint">Only upload if this was the issue — leave blank to keep your existing file</div>
+            <input type="file" name="labelImage" accept="image/*"/>
+
+            <label>Unboxing Video</label>
+            <div class="field-hint">Only upload if this was the issue — leave blank to keep your existing file</div>
+            <input type="file" name="unboxingVideo" accept="video/*"/>
+
+            <button type="submit" class="submit-btn">Resubmit for Review</button>
+        </form>
+        <a href="/account" class="back-link">← Back to My Account</a>
+    </div>
+
+</div>
+
+</body>
+</html>

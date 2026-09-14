@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logistics Management - Admin | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; flex-wrap: wrap; gap: 14px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+        .admin-topbar p { color: #8a6a44; font-size: 13px; margin: 4px 0 0; }
+
+        .add-btn { padding: 11px 22px; background: #2c2118; color: white; border: none; border-radius: 30px; font-size: 14px; font-weight: 600; cursor: pointer; }
+
+        .section-title { font-size: 17px; font-weight: 700; color: #2c2118; margin: 32px 0 14px; }
+        .admin-card { background: white; border-radius: 16px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); overflow: hidden; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 14px 18px; text-align: left; font-size: 13px; }
+        th { background: #f8f4ec; color: #6b543e; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid #ece3d4; }
+        tbody tr { border-bottom: 1px solid #f0ebe1; }
+        tbody tr:last-child { border-bottom: none; }
+        .action-link { text-decoration: none; font-weight: 600; font-size: 12px; margin-right: 12px; }
+        .edit-link { color: #b58a4b; }
+        .delete-link { color: #c05a5a; }
+        .toggle-link { color: #4a7ab5; }
+        .credential-mask { color: #a3927e; font-family: monospace; }
+
+        /* Toggle pill */
+        .status-pill { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; color: white; }
+        .status-on { background: #2e7d32; }
+        .status-off { background: #a3927e; }
+
+        .empty-row td { text-align: center; color: #a3927e; padding: 30px; }
+
+        .form-box { background: white; border-radius: 16px; padding: 26px; box-shadow: 0 4px 20px rgba(44,33,24,0.06); max-width: 480px; margin-top: 10px; }
+        .form-box h3 { margin-top: 0; font-size: 16px; color: #2c2118; }
+        label { display: block; margin-top: 12px; font-weight: 600; font-size: 12px; color: #4a3627; }
+        input, select { width: 100%; padding: 9px 12px; margin-top: 5px; border: 1px solid #e0d7c8; border-radius: 8px; box-sizing: border-box; font-family: 'Inter', sans-serif; font-size: 13px; }
+        .save-btn { margin-top: 18px; padding: 10px; width: 100%; background: #2c2118; color: white; border: none; border-radius: 30px; font-size: 13px; font-weight: 600; cursor: pointer; }
+        .cancel-link { display: block; text-align: center; margin-top: 10px; color: #8a6a44; text-decoration: none; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/products" class="active">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <div>
+                <h1>Logistics Management</h1>
+                <p>Connect courier partners and set rules for how shipments get routed</p>
+            </div>
+        </div>
+
+        <div class="section-title">Logistics Partners</div>
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Logistics Name</th>
+                    <th>API ID / Email</th>
+                    <th>Password / Token</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                <tr th:if="${partners.size() == 0}" class="empty-row"><td colspan="5">No partners added yet.</td></tr>
+                <tr th:each="p : ${partners}">
+                    <td th:text="${p.partnerName}">Name</td>
+                    <td th:text="${p.apiIdOrEmail}">ID</td>
+                    <td class="credential-mask">••••••••</td>
+                    <td>
+                        <span class="status-pill" th:classappend="${p.enabled} ? 'status-on' : 'status-off'" th:text="${p.enabled} ? 'ON' : 'OFF'">OFF</span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/admin/logistics/partner/toggle/' + ${p.id}}" class="action-link toggle-link" th:text="${p.enabled} ? 'Turn Off' : 'Turn On'">Toggle</a>
+                        <a th:href="@{'/admin/logistics/partner/edit/' + ${p.id}}" class="action-link edit-link">Edit</a>
+                        <a th:href="@{'/admin/logistics/partner/delete/' + ${p.id}}" class="action-link delete-link" onclick="return confirm('Delete this partner?')">Delete</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-box">
+            <h3 th:text="${newPartner.id} != null ? 'Edit Shipper' : 'Integrate New Shipper'">Integrate New Shipper</h3>
+            <form th:action="@{/admin/logistics/partner/save}" th:object="${newPartner}" method="post">
+                <input type="hidden" th:field="*{id}"/>
+                <input type="hidden" th:field="*{enabled}"/>
+
+                <label>Logistics Partner Name</label>
+                <input type="text" th:field="*{partnerName}" placeholder="e.g. Delhivery, Ekart, Shiprocket, Nimbuspost, Bluedart" required/>
+
+                <label>API ID / Email</label>
+                <input type="text" th:field="*{apiIdOrEmail}" placeholder="Account email or API ID"/>
+
+                <label>Password / Token</label>
+                <input type="password" th:field="*{apiPasswordOrToken}" placeholder="Account password or API token"/>
+
+                <button type="submit" class="save-btn">Save Partner</button>
+            </form>
+        </div>
+
+        <div class="section-title">Shipping Rules (Weight-Based Routing)</div>
+        <div class="admin-card">
+            <table>
+                <tr>
+                    <th>Priority</th>
+                    <th>Condition</th>
+                    <th>Assigned Partner</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+                <tr th:if="${rules.size() == 0}" class="empty-row"><td colspan="5">No rules configured — all shipments need manual partner assignment.</td></tr>
+                <tr th:each="r : ${rules}">
+                    <td th:text="${r.priority}">1</td>
+                    <td th:text="${r.getDescription()}">Weight ≤ 500g</td>
+                    <td th:text="${partnerNames.get(r.partnerId)} ?: 'Unknown Partner'">Partner</td>
+                    <td>
+                        <span class="status-pill" th:classappend="${r.active} ? 'status-on' : 'status-off'" th:text="${r.active} ? 'ON' : 'OFF'">OFF</span>
+                    </td>
+                    <td>
+                        <a th:href="@{'/admin/logistics/rule/toggle/' + ${r.id}}" class="action-link toggle-link" th:text="${r.active} ? 'Turn Off' : 'Turn On'">Toggle</a>
+                        <a th:href="@{'/admin/logistics/rule/delete/' + ${r.id}}" class="action-link delete-link" onclick="return confirm('Delete this rule?')">Delete</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="form-box">
+            <h3>Add New Shipping Rule</h3>
+            <form th:action="@{/admin/logistics/rule/save}" th:object="${newRule}" method="post">
+                <input type="hidden" th:field="*{active}" value="true"/>
+
+                <label>If Order Weight Is</label>
+                <select th:field="*{operator}" required>
+                    <option value="LESS_THAN_EQUAL">Less than or equal to (≤)</option>
+                    <option value="GREATER_THAN">Greater than (&gt;)</option>
+                </select>
+
+                <label>Weight Threshold (grams)</label>
+                <input type="number" step="1" th:field="*{weightThresholdGrams}" placeholder="e.g. 500" required/>
+
+                <label>Assign To Partner</label>
+                <select th:field="*{partnerId}" required>
+                    <option th:each="p : ${partners}" th:value="${p.id}" th:text="${p.partnerName}">Partner</option>
+                </select>
+
+                <label>Priority (lower number checked first)</label>
+                <input type="number" th:field="*{priority}" value="1" required/>
+
+                <button type="submit" class="save-btn">Save Rule</button>
+            </form>
+        </div>
+
+    </main>
+
+</div>
+
+</body>
+</html>

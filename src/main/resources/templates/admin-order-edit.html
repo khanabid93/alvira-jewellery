@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Order - Admin | Alvira Jewellery</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; margin: 0; background: #f4efe6; color: #3d2e1f; }
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        .admin-layout { display: flex; min-height: 100vh; }
+
+        .admin-sidebar { width: 230px; background: #2c2118; color: #ece3d4; padding: 28px 0; flex-shrink: 0; }
+        .admin-sidebar .brand { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: #fff; padding: 0 24px 28px; display: block; text-decoration: none; }
+        .admin-sidebar nav a { display: block; padding: 13px 24px; color: #cbbfa9; text-decoration: none; font-size: 14px; font-weight: 500; border-left: 3px solid transparent; transition: all 0.2s ease; }
+        .admin-sidebar nav a:hover { background: rgba(255,255,255,0.05); color: #fff; }
+        .admin-sidebar nav a.active { background: rgba(181,138,75,0.15); color: #d9b877; border-left-color: #b58a4b; font-weight: 600; }
+        .admin-sidebar .logout-link { display: block; margin-top: 40px; padding: 13px 24px; color: #e08585; text-decoration: none; font-size: 14px; font-weight: 500; }
+        .admin-sidebar .logout-link:hover { background: rgba(224,133,133,0.1); }
+
+        .admin-main { flex-grow: 1; padding: 36px 44px; }
+        .admin-topbar { margin-bottom: 28px; }
+        .admin-topbar h1 { font-size: 26px; color: #2c2118; margin: 0; }
+        .admin-topbar p { color: #8a6a44; font-size: 13px; margin: 4px 0 0; }
+
+        .form-box {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 20px rgba(44,33,24,0.06);
+            max-width: 560px;
+        }
+        label { display: block; margin-top: 16px; font-weight: 600; font-size: 13px; color: #4a3627; }
+        input {
+            width: 100%;
+            padding: 11px 13px;
+            margin-top: 6px;
+            border: 1px solid #e0d7c8;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+        }
+        .save-btn {
+            margin-top: 24px;
+            padding: 13px;
+            width: 100%;
+            background: #2c2118;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .save-btn:hover { background: #453423; }
+        .cancel-link { display: block; text-align: center; margin-top: 14px; color: #8a6a44; text-decoration: none; font-size: 13px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-layout">
+
+    <aside class="admin-sidebar">
+        <a href="/admin" class="brand">Alvira Admin</a>
+        <nav>
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/products" class="active">Products</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/orders">Orders</a>
+            <a th:if="${currentAdminUser.hasPermission('coupons')}" href="/admin/coupons">Coupons</a>
+            <a th:if="${currentAdminUser.hasPermission('offers')}" href="/admin/offers">Offers</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/returns">Returns</a>
+            <a th:if="${currentAdminUser.hasPermission('reports')}" href="/admin/reports">Reports</a>
+            <a th:if="${currentAdminUser.hasPermission('logistics')}" href="/admin/logistics">Logistics</a>
+            <a th:if="${currentAdminUser.hasPermission('orders')}" href="/admin/abandoned-carts">Abandoned Carts</a>
+            <a th:if="${currentAdminUser.hasPermission('customers')}" href="/admin/customers">Customers</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/staff">Staff Accounts</a>
+            <a th:if="${currentAdminUser.role == 'ADMIN'}" href="/admin/activity-log">Activity Log</a>
+        </nav>
+        <a href="/logout" class="logout-link">Logout</a>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <h1 th:text="'Edit Order #' + ${order.id}">Edit Order</h1>
+            <p>Update customer or delivery details for this order</p>
+        </div>
+
+        <div class="form-box">
+            <form th:action="@{'/admin/orders/update/' + ${order.id}}" method="post">
+
+                <label>Customer Name</label>
+                <input type="text" name="customerName" th:value="${order.customerName}" required/>
+
+                <label>Phone Number</label>
+                <input type="text" name="phoneNumber" th:value="${order.phoneNumber}" required/>
+
+                <label>Address</label>
+                <input type="text" name="address" th:value="${order.address}" required/>
+
+                <label>City</label>
+                <input type="text" name="city" th:value="${order.city}" required/>
+
+                <label>State</label>
+                <input type="text" name="state" th:value="${order.state}"/>
+
+                <label>Pincode</label>
+                <input type="text" name="pincode" th:value="${order.pincode}" required/>
+
+                <label>Payment Mode</label>
+                <select name="paymentMode" style="width:100%; padding:11px 13px; margin-top:6px; border:1px solid #e0d7c8; border-radius:8px; font-family:'Inter', sans-serif; font-size:14px;">
+                    <option value="Cash on Delivery" th:selected="${order.paymentMode == 'Cash on Delivery'}">Cash on Delivery</option>
+                    <option value="UPI" th:selected="${order.paymentMode == 'UPI'}">UPI</option>
+                    <option value="Card" th:selected="${order.paymentMode == 'Card'}">Card</option>
+                    <option value="Net Banking" th:selected="${order.paymentMode == 'Net Banking'}">Net Banking</option>
+                </select>
+
+                <h3 style="margin-top:28px; padding-top:20px; border-top:1px solid #ece3d4; font-size:15px; color:#2c2118;">Shipment Tracking</h3>
+                <p style="font-size:12px; color:#a3927e; margin-top:-8px;">Manual entry for now — will auto-fill once Shiprocket API is connected</p>
+
+                <label>Courier Name</label>
+                <input type="text" name="courierName" th:value="${order.courierName}" placeholder="e.g. Delhivery, Bluedart"/>
+
+                <label>AWB / Tracking Number</label>
+                <input type="text" name="awbCode" th:value="${order.awbCode}" placeholder="e.g. 14523698745"/>
+
+                <label>Shipment Status</label>
+                <select name="shipmentStatus" style="width:100%; padding:11px 13px; margin-top:6px; border:1px solid #e0d7c8; border-radius:8px; font-family:'Inter', sans-serif; font-size:14px;">
+                    <option value="" th:selected="${order.shipmentStatus == null}">— Not shipped yet —</option>
+                    <option value="Pickup Scheduled" th:selected="${order.shipmentStatus == 'Pickup Scheduled'}">Pickup Scheduled</option>
+                    <option value="In Transit" th:selected="${order.shipmentStatus == 'In Transit'}">In Transit</option>
+                    <option value="Out for Delivery" th:selected="${order.shipmentStatus == 'Out for Delivery'}">Out for Delivery</option>
+                    <option value="Delivered" th:selected="${order.shipmentStatus == 'Delivered'}">Delivered</option>
+                </select>
+
+                <label>Estimated Delivery Date</label>
+                <input type="date" name="estimatedDeliveryDate" th:value="${order.estimatedDeliveryDate}"/>
+
+                <button type="submit" class="save-btn">Save Changes</button>
+            </form>
+            <a href="/admin/orders" class="cancel-link">← Back to Orders</a>
+        </div>
+    </main>
+
+</div>
+
+</body>
+</html>
